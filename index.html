@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#08080c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="小手机">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>📱 小手机</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="statusbar"><span id="sbTime">00:00</span><span>📶 🔋</span></div>
+
+<div id="home" class="screen active">
+  <div class="home-wall">
+    <div class="home-time" id="homeTime">00:00</div>
+    <div class="app-grid">
+      <div><div class="app-icon" data-app="wechat" style="background:linear-gradient(135deg,rgba(7,193,96,.6),rgba(10,132,255,.45))"><span class="ico">💬</span></div><div class="app-name">微信</div></div>
+      <div><div class="app-icon" data-app="vocab" style="background:linear-gradient(135deg,rgba(255,159,10,.55),rgba(255,55,95,.45))"><span class="ico">📚</span></div><div class="app-name">背单词</div></div>
+      <div><div class="app-icon" data-app="settings" style="background:linear-gradient(135deg,rgba(142,142,147,.55),rgba(72,72,74,.5))"><span class="ico">⚙️</span></div><div class="app-name">设置</div></div>
+      <div><div class="app-icon" data-app="lore" style="background:linear-gradient(135deg,rgba(255,214,10,.55),rgba(255,159,10,.45))"><span class="ico">📖</span></div><div class="app-name">世界书</div></div>
+      <div><div class="app-icon" data-app="memory" style="background:linear-gradient(135deg,rgba(191,90,242,.5),rgba(94,92,230,.5))"><span class="ico">🧠</span></div><div class="app-name">记忆</div></div>
+      <div><div class="app-icon" data-app="data" style="background:linear-gradient(135deg,rgba(100,210,255,.5),rgba(10,132,255,.5))"><span class="ico">💾</span></div><div class="app-name">数据</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-wechat" class="screen">
+  <div class="tab-page active" id="tab-wechat">
+    <div class="page-head"><button class="ph-btn back-home">‹</button><span style="flex:1">微信</span></div>
+    <div class="search-bar"><input id="searchChat" placeholder="🔍 搜索"></div>
+    <div class="page-body" id="chatList"></div>
+  </div>
+  <div class="tab-page" id="tab-contacts">
+    <div class="page-head"><button class="ph-btn back-home">‹</button><span style="flex:1">通讯录</span><button class="ph-btn" id="btnAddChar">＋</button></div>
+    <div class="search-bar"><input id="searchContact" placeholder="🔍 搜索"></div>
+    <div class="page-body" id="contactList"></div>
+  </div>
+  <div class="tab-page" id="tab-discover">
+    <div class="page-head"><button class="ph-btn back-home">‹</button><span style="flex:1">发现</span></div>
+    <div class="page-body" style="padding:0">
+      <div class="menu-group">
+        <div class="menu-item" id="miMoments"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(245,166,35,.6),rgba(255,120,60,.5))">🌅</span><span class="mi-name">朋友圈</span><span class="mi-badge" id="momentsBadge" style="display:none">0</span><span class="mi-chev">›</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-page" id="tab-me">
+    <div class="page-head"><button class="ph-btn back-home">‹</button><span style="flex:1">我</span></div>
+    <div class="page-body" style="padding:0">
+      <div class="menu-group" id="meProfile" style="margin-top:14px">
+        <div class="menu-item">
+          <span class="mi-ico" id="meAvatar" style="background:linear-gradient(135deg,rgba(10,132,255,.6),rgba(48,209,88,.5));width:52px;height:52px;font-size:24px;border-radius:14px">我</span>
+          <span class="mi-name" id="meName" style="font-size:17px;font-weight:700">未设置</span>
+          <span class="mi-chev">›</span>
+        </div>
+      </div>
+      <div class="menu-group">
+        <div class="menu-item" id="miWallet"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(7,193,96,.6),rgba(10,132,255,.5))">👛</span><span class="mi-name">钱包</span><span class="mi-val" id="walletPreview">¥0.00</span><span class="mi-chev">›</span></div>
+        <div class="menu-item" id="miProta"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">🎭</span><span class="mi-name">主角人设</span><span class="mi-chev">›</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar" style="display:none">
+  <button class="tab active" data-tab="wechat"><span class="ico">💬</span><span class="lbl">微信</span></button>
+  <button class="tab" data-tab="contacts"><span class="ico">👥</span><span class="lbl">通讯录</span></button>
+  <button class="tab" data-tab="discover"><span class="ico">🧭</span><span class="lbl">发现</span></button>
+  <button class="tab" data-tab="me"><span class="ico">👤</span><span class="lbl">我</span></button>
+</nav>
+
+<div id="sub-chat" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title" id="chatTitle">聊天</div><button class="nav-btn" id="btnChatMore">···</button></div>
+  <div class="typing-bar" id="typingBar"><span id="typingName">对方</span> 正在输入<span class="dots"></span></div>
+  <div class="chat-body" id="chatMsgList"></div>
+  <div class="chat-input"><button class="plus" id="btnPlus">＋</button><textarea id="input" rows="1" placeholder="输入消息…"></textarea><button class="send" id="btnSend">➤</button></div>
+</div>
+
+<div id="sub-vocab" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">背单词</div><button class="nav-btn" id="btnVocabAdd">＋词</button></div>
+  <div class="sub-body">
+    <div class="vocab-stats">
+      <div class="vs-item"><div class="vs-num" id="vsToday">0</div><div class="vs-lbl">今日已背</div></div>
+      <div class="vs-item"><div class="vs-num" id="vsRate">-</div><div class="vs-lbl">正确率</div></div>
+      <div class="vs-item"><div class="vs-num" id="vsWrong">0</div><div class="vs-lbl">错词</div></div>
+    </div>
+    <div class="vocab-card" id="vocabCard">
+      <div class="v-word" id="vWord">-</div>
+      <div class="v-phonetic" id="vHint">选择正确的中文释义</div>
+      <div class="v-options" id="vOptions"></div>
+    </div>
+    <div class="v-result" id="vResult"></div>
+    <button class="btn wx v-next" id="btnNext">下一题 ›</button>
+    <div style="height:20px"></div>
+    <div class="group-title">错词本</div>
+    <div id="wrongList"></div>
+  </div>
+</div>
+
+<div id="sub-moments" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">朋友圈</div><button class="nav-btn" id="btnNewMoment">发布</button></div>
+  <div class="sub-body" id="momentList"></div>
+  <button class="add-fab" id="fabMoment">✏️</button>
+</div>
+
+<div id="sub-wallet" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">钱包</div></div>
+  <div class="sub-body">
+    <div class="wallet-balance"><div class="wb-lbl">零钱余额</div><div class="wb-num" id="walletNum">¥0.00</div></div>
+    <div class="wallet-actions"><button class="wa-in" id="btnWalletIn">模拟入账 +100</button><button class="wa-out" id="btnWalletOut">模拟消费 -10</button></div>
+    <div class="group-title">账单</div>
+    <div id="billList"></div>
+  </div>
+</div>
+
+<div id="sub-prota" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">主角人设</div><button class="nav-btn" id="btnSaveProta">保存</button></div>
+  <div class="sub-body">
+    <div class="group-title">你的角色</div>
+    <div class="group">
+      <div class="cell"><span class="label">名字</span><input class="cell-edit" id="protaName" placeholder="你叫什么" style="text-align:right"></div>
+      <div class="cell" style="flex-direction:column;align-items:stretch"><span class="label">人设描述（性格、身份、背景）</span><textarea class="cell-edit" id="protaDesc" style="min-height:120px"></textarea></div>
+    </div>
+  </div>
+</div>
+
+<div id="sub-settings" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">设置</div><button class="nav-btn" id="btnSaveSet">保存</button></div>
+  <div class="sub-body">
+    <div class="group-title">API 配置</div>
+    <div class="group">
+      <div class="cell"><span class="label">Base URL</span><input class="cell-edit" id="setBaseurl" placeholder="https://api.openai.com/v1" style="text-align:right"></div>
+      <div class="cell"><span class="label">API Key</span><input class="cell-edit" id="setKey" type="password" placeholder="sk-..." style="text-align:right"></div>
+    </div>
+    <div class="group-title">模型</div>
+    <div class="group"><div class="cell" id="cellModel"><span class="label">模型</span><span class="value" id="setModel">未选择</span><span class="chev">›</span></div></div>
+    <div class="group-title">生成参数</div>
+    <div class="group">
+      <div class="cell"><span class="label">温度</span><div class="slider-row"><input type="range" id="setTemp" min="0" max="2" step="0.1" value="0.9"><span class="sval" id="tempVal">0.9</span></div></div>
+      <div class="cell"><span class="label">Top P</span><div class="slider-row"><input type="range" id="setTopP" min="0" max="1" step="0.05" value="1"><span class="sval" id="topPVal">1.0</span></div></div>
+      <div class="cell"><span class="label">Max Tokens</span><input class="cell-edit" id="setMaxTokens" type="number" value="1024" style="width:80px;text-align:right"></div>
+    </div>
+    <div class="group-title">对话</div>
+    <div class="group"><div class="cell"><span class="label">流式输出</span><div class="switch on" id="setStream"></div></div></div>
+    <div class="group-title">系统提示词模板（{name}替换角色名）</div>
+    <div class="group"><div class="cell" style="flex-direction:column;align-items:stretch"><textarea class="cell-edit" id="setSysPrompt" style="min-height:90px"></textarea></div></div>
+  </div>
+</div>
+
+<div id="sub-models" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">选择模型</div><button class="nav-btn" id="btnRefreshModels">刷新</button></div>
+  <div class="sub-body" id="modelList"></div>
+</div>
+
+<div id="sub-lore" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">世界书</div></div>
+  <div class="sub-body" id="wbList"></div>
+  <button class="add-fab" id="btnAddWb">+</button>
+</div>
+
+<div id="sub-memory" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">记忆</div></div>
+  <div class="sub-body">
+    <div class="group" style="padding:16px">
+      <div style="font-size:13px;color:var(--orange);font-weight:600;margin-bottom:8px">🧠 当前角色记忆摘要</div>
+      <div id="memText" style="font-size:14px;line-height:1.6;color:var(--text2);white-space:pre-wrap">（暂无记忆。）</div>
+    </div>
+    <button class="btn wx" id="btnSummarize">立即总结记忆</button>
+    <button class="btn gray" id="btnClearMemory">清空记忆</button>
+  </div>
+</div>
+
+<div id="sub-data" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">数据备份</div></div>
+  <div class="sub-body">
+    <button class="btn wx" id="btnExport">导出备份</button>
+    <button class="btn gray" id="btnImportTrigger">导入备份</button>
+    <input type="file" id="fileImport" accept=".json" style="display:none">
+    <div style="height:20px"></div>
+    <button class="btn red" id="btnWipeAll">恢复出厂设置</button>
+  </div>
+</div>
+
+<input type="file" id="filePNG" accept=".png,image/png" style="display:none">
+
+<div class="sheet-mask" id="sheetMask"></div>
+<div class="sheet" id="sheet"><div class="sheet-handle"></div><div id="sheetContent"></div></div>
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
