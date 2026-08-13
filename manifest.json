@@ -1,0 +1,14 @@
+{
+  "name": "小手机",
+  "short_name": "小手机",
+  "description": "液态玻璃风 AI 聊天 + 背单词",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}
