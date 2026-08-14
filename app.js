@@ -102,26 +102,10 @@ function openApp(app){
   else if(app==='memory')navigate({kind:'sub',id:'sub-memory'});
   else if(app==='data')navigate({kind:'sub',id:'sub-data'});
 }
-function launchApp(el,app){
-  const rect=el.getBoundingClientRect();
-  const overlay=document.createElement('div');
-  overlay.className='launch-overlay';
-  overlay.style.left=rect.left+'px';
-  overlay.style.top=rect.top+'px';
-  overlay.style.width=rect.width+'px';
-  overlay.style.height=rect.height+'px';
-  overlay.style.borderRadius=getComputedStyle(el).borderRadius||'21px';
-  overlay.style.background=getComputedStyle(el).backgroundImage||getComputedStyle(el).background;
-  const glyph=el.querySelector('.app-glyph');
-  if(glyph){overlay.appendChild(glyph.cloneNode(true));}
-  document.body.appendChild(overlay);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>overlay.classList.add('zoom')));
-  setTimeout(()=>{overlay.remove();openApp(app);},180);
-}
 document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click',back));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
-document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>launchApp(el,el.dataset.app)));
+document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el.dataset.app)));
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');$('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());$('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());}
 tick();setInterval(tick,10000);
 function applyWallpaper(){const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];$('homeWall').style.background=wp.bg;$('wallpaperName').textContent=wp.name;}
