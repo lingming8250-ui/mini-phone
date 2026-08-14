@@ -8,8 +8,8 @@ html,body{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;max-width:480px;margin:0 auto;font-weight:400}
 .statusbar{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:600;display:flex;justify-content:space-between;align-items:center;padding:8px 22px 0;font-size:14px;font-weight:600;height:30px;width:100%;max-width:480px;pointer-events:none;color:var(--text)}
 .statusbar .status-right{display:flex;align-items:center;gap:5px}
-.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.switch,.like-btn,.v-opt,.plus,.prota-chip,.np-toggle{transition:transform .15s cubic-bezier(.34,1.56,.64,1),opacity .15s,background .2s,border-color .2s}
-.app-icon:active,.c-item:active,.menu-item:active,.cell:active,.tab:active,.btn:active,.back:active,.nav-btn:active,.model-item:active,.send:active,.add-fab:active,.like-btn:active,.v-opt:active,.plus:active,.prota-chip:active,.np-toggle:active{transform:scale(.92);opacity:.85}
+.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.switch,.like-btn,.v-opt,.plus,.prota-chip,.np-toggle,.wp-tab{transition:transform .15s cubic-bezier(.34,1.56,.64,1),opacity .15s,background .2s,border-color .2s}
+.app-icon:active,.c-item:active,.menu-item:active,.cell:active,.tab:active,.btn:active,.back:active,.nav-btn:active,.model-item:active,.send:active,.add-fab:active,.like-btn:active,.v-opt:active,.plus:active,.prota-chip:active,.np-toggle:active,.wp-tab:active{transform:scale(.92);opacity:.85}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);padding-top:28px}
 .screen.active{display:flex}
 #home{background:#08080c}
@@ -64,6 +64,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .navbar .title{flex:1;font-size:16px;font-weight:700;text-align:center}
 .navbar .nav-btn{background:none;border:none;color:var(--blue);font-size:17px;cursor:pointer;padding:6px 8px;font-weight:600}
 .sub-body{flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+.wp-tabs{display:flex;gap:8px;margin-bottom:16px}
+.wp-tab{flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text2);font-size:14px;cursor:pointer;text-align:center}
+.wp-tab.on{background:rgba(10,132,255,.18);border-color:var(--blue);color:var(--text)}
 .wp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .wp-item{aspect-ratio:9/16;border-radius:14px;border:2px solid transparent;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.4)}
 .wp-item.sel{border-color:var(--blue)}
