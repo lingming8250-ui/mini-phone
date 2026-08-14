@@ -3,7 +3,7 @@ const LS_OK = (function(){try{localStorage.setItem('__t__','1');localStorage.rem
 let warnedNoStore=false;
 function save(k,v){memStore[k]=v;if(LS_OK){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}else if(!warnedNoStore){warnedNoStore=true;toast('浏览器存储不可用，数据仅本次有效')}}
 function load(k,d){let raw=null;if(LS_OK){try{raw=localStorage.getItem(k)}catch(e){}}if(raw===null&&memStore[k]!==undefined)raw=JSON.stringify(memStore[k]);if(raw===null||raw===undefined)return d;try{return JSON.parse(raw)}catch(e){return d}}
-const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',prota:'mt3_prota',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper'};
+const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',prota:'mt3_prota',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper',wpimg:'mt3_wpimg'};
 const DEFAULT_SYS='你正在扮演角色「{name}」。严格贴合人设对话，自然生活化，模仿真人语气，口语化表达。禁止出现"作为AI""作为语言模型""很高兴为您服务"等AI话术痕迹。不要解释设定，直接进入角色，回复长度适中。';
 const dset={baseurl:'',apiKey:'',model:'',temperature:0.9,topP:1,maxTokens:1024,stream:true,sys:DEFAULT_SYS};
 let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dset,...st};
@@ -31,7 +31,14 @@ const WALLPAPERS=[
 {id:'night',name:'星夜',bg:'radial-gradient(ellipse at 30% 25%, rgba(80,90,200,.3), transparent 50%), radial-gradient(ellipse at 75% 70%, rgba(20,40,90,.35), transparent 52%), #02030a'}
 ];
 let wallpaper=load(LS.wallpaper,'aurora');
-if(!WALLPAPERS.some(w=>w.id===wallpaper))wallpaper='aurora';
+if(!WALLPAPERS.some(w=>w.id===wallpaper)&&wallpaper!=='custom')wallpaper='aurora';
+let wpImgUrl=null;
+(function initWPImg(){
+  try{
+    const raw=localStorage.getItem(LS.wpimg);
+    if(raw){wpImgUrl=raw;}
+  }catch(e){}
+})();
 const BUILTIN_WORDS=[
 {w:'abandon',m:'放弃'},{w:'absorb',m:'吸收'},{w:'abundant',m:'丰富的'},{w:'access',m:'进入；通道'},{w:'accompany',m:'陪伴'},
 {w:'accomplish',m:'完成'},{w:'accurate',m:'准确的'},{w:'achieve',m:'实现'},{w:'acquire',m:'获得'},{w:'adapt',m:'适应'},
@@ -125,8 +132,41 @@ document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',
 document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el,el.dataset.app)));
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');$('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());$('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());}
 tick();setInterval(tick,10000);
-function applyWallpaper(){const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];$('homeWall').style.background=wp.bg;$('wallpaperName').textContent=wp.name;}
-function renderWallpaper(){const box=$('wpGrid');box.innerHTML='';WALLPAPERS.forEach(w=>{const d=document.createElement('div');d.className='wp-item'+(w.id===wallpaper?' sel':'');d.style.background=w.bg;d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};box.appendChild(d);});}
+function applyWallpaper(){
+  if(wallpaper==='custom'&&wpImgUrl){
+    $('homeWall').style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';
+    $('wallpaperName').textContent='自定义';
+  }else{
+    const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];
+    $('homeWall').style.background=wp.bg;
+    $('wallpaperName').textContent=wp.name;
+  }
+}
+function renderWallpaper(){
+  const box=$('wpGrid');box.innerHTML='';
+  WALLPAPERS.forEach(w=>{
+    const d=document.createElement('div');
+    d.className='wp-item'+(w.id===wallpaper?' sel':'');
+    d.style.background=w.bg;
+    d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;
+    d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};
+    box.appendChild(d);
+  });
+  if(wpImgUrl){
+    const d=document.createElement('div');
+    d.className='wp-item'+(wallpaper==='custom'?' sel':'');
+    d.style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';
+    d.innerHTML=`<div class="wp-label">自定义</div><div class="wp-check">✓</div>`;
+    d.onclick=()=>{wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到自定义壁纸')};
+    box.appendChild(d);
+  }
+  const up=document.createElement('div');
+  up.className='wp-item';
+  up.style.cssText='display:flex;align-items:center;justify-content:center;font-size:30px;border:2px dashed rgba(255,255,255,.25)';
+  up.innerHTML='<div style="text-align:center"><div>＋</div><div style="font-size:11px;color:var(--text2)">上传图片</div></div>';
+  up.onclick=()=>{$('fileWP').click()};
+  box.appendChild(up);
+}
 function allWords(){return BUILTIN_WORDS.concat(vocab.custom)}
 function checkNewDay(){const t=todayStr();if(vocab.lastDate!==t){vocab.lastDate=t;vocab.today=0;vocab.right=0;vocab.wrongCnt=0;save(LS.vocab,vocab)}}
 function renderVocab(){checkNewDay();$('vsToday').textContent=vocab.today;const total=vocab.right+vocab.wrongCnt;$('vsRate').textContent=total?Math.round(vocab.right/total*100)+'%':'-';$('vsWrong').textContent=Object.keys(vocab.wrong).length;renderWrongList();newQuestion();}
@@ -175,7 +215,7 @@ $('meProfile').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
 $('cellWallpaper').onclick=()=>navigate({kind:'sub',id:'sub-wallpaper'});
 $('cellAbout').onclick=()=>navigate({kind:'sub',id:'sub-about'});
 $('btnSaveProta').onclick=()=>{const n=$('protaName').value.trim();if(!n){toast('名字不能为空');return}prota={name:n,desc:$('protaDesc').value.trim()};save(LS.prota,prota);renderMe();back();toast('主角人设已保存');};
-function fillSetForm(){$('setBaseurl').value=st.baseurl;$('setKey').value=st.apiKey;$('setModel').textContent=st.model||'未选择';$('setTemp').value=st.temperature;$('tempVal').textContent=st.temperature;$('setTopP').value=st.topP;$('topPVal').textContent=st.topP;$('setMaxTokens').value=st.maxTokens;$('setStream').classList.toggle('on',st.stream);$('setSysPrompt').value=st.sys;$('wallpaperName').textContent=(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;}
+function fillSetForm(){$('setBaseurl').value=st.baseurl;$('setKey').value=st.apiKey;$('setModel').textContent=st.model||'未选择';$('setTemp').value=st.temperature;$('tempVal').textContent=st.temperature;$('setTopP').value=st.topP;$('topPVal').textContent=st.topP;$('setMaxTokens').value=st.maxTokens;$('setStream').classList.toggle('on',st.stream);$('setSysPrompt').value=st.sys;$('wallpaperName').textContent=wallpaper==='custom'?'自定义':(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;}
 function saveSet(){st.baseurl=$('setBaseurl').value.trim();st.apiKey=$('setKey').value.trim();st.temperature=parseFloat($('setTemp').value);st.topP=parseFloat($('setTopP').value);st.maxTokens=parseInt($('setMaxTokens').value)||1024;st.stream=$('setStream').classList.contains('on');st.sys=$('setSysPrompt').value;save(LS.s,st);toast('设置已保存');}
 $('setStream').onclick=function(){this.classList.toggle('on')};
 $('setTemp').oninput=e=>$('tempVal').textContent=e.target.value;
@@ -193,6 +233,20 @@ $('sheetMask').onclick=closeSheet;
 function openAddCharSheet(){openSheet(`<div class="field"><label>新建角色</label></div><div class="field"><label>角色名</label><input id="newCharName" placeholder="角色名字"></div><div class="field"><label>人设（可选）</label><textarea id="newCharDesc" placeholder="性格、背景、说话风格…"></textarea></div><button class="btn wx" id="btnNewCharOk">创建并聊天</button><div style="text-align:center;color:var(--text2);font-size:12px;margin:10px 0">—— 或者 ——</div><button class="btn gray" id="btnSheetImportPng">📥 导入 PNG 角色卡</button><button class="btn gray" id="btnSheetCancel">取消</button>`);$('btnNewCharOk').onclick=function(){try{const n=$('newCharName').value.trim();if(!n){toast('名字不能为空');return}const c=addChar({name:n,desc:$('newCharDesc').value.trim()});closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});toast('已创建：'+c.name);}catch(e){toast('创建失败：'+(e&&e.message?e.message:e))}};$('btnSheetImportPng').onclick=function(){closeSheet();$('filePNG').click()};$('btnSheetCancel').onclick=closeSheet;}
 $('btnAddChar').onclick=openAddCharSheet;
 $('filePNG').addEventListener('change',function(){const f=this.files[0];if(!f)return;f.arrayBuffer().then(buf=>{try{const c=addChar(normChara(parsePNG(buf)));navigate({kind:'wechat',tab:'contacts'});toast('已添加角色：'+c.name);}catch(e){toast('导入失败：'+e.message)}});this.value='';});
+$('fileWP').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  if(f.size>4*1024*1024){toast('图片太大，选 4MB 以内的');this.value='';return}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    wpImgUrl=reader.result;
+    try{localStorage.setItem(LS.wpimg,wpImgUrl);}catch(e){}
+    wallpaper='custom';save(LS.wallpaper,wallpaper);
+    applyWallpaper();renderWallpaper();
+    toast('壁纸已设置');
+  };
+  reader.readAsDataURL(f);
+  this.value='';
+});
 $('btnChatMore').onclick=()=>{openSheet(`<div class="menu-item" id="mRegenAll" style="border:none;border-radius:10px;margin-bottom:6px">🔄 重新生成最后回复</div><div class="menu-item" id="mClear" style="border:none;border-radius:10px;color:var(--red)">🗑 清空聊天记录</div><button class="btn gray" id="mMoreCancel" style="margin-top:10px">取消</button>`);$('mRegenAll').onclick=()=>{closeSheet();const msgs=chats[activeCharId]||[];let li=-1;for(let i=msgs.length-1;i>=0;i--){if(msgs[i].role==='assistant'){li=i;break}}if(li<0){toast('没有可重新生成的回复');return}regenAt(li)};$('mClear').onclick=()=>{if(!confirm('清空当前角色聊天记录？'))return;chats[activeCharId]=[];save(LS.chats,chats);closeSheet();renderChat();toast('已清空')};$('mMoreCancel').onclick=closeSheet;};
 $('searchChat').addEventListener('input',e=>{chatFilter=e.target.value.trim();renderChatList()});
 $('searchContact').addEventListener('input',e=>{contactFilter=e.target.value.trim();renderContacts()});
