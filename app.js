@@ -783,8 +783,8 @@ $('btnSaveSet').onclick=saveSet;
 $('btnSend').onclick=send;
 $('input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'});
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister())}).catch(()=>{});
 }
 applyWallpaper();
 renderChatList();renderContacts();renderMe();renderWallet();
