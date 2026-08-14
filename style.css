@@ -162,6 +162,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .field textarea{resize:vertical;line-height:1.4;min-height:70px}
 #toast{position:fixed;top:calc(40px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(0,0,0,.8);backdrop-filter:blur(10px);border:1px solid var(--border);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:99;transition:transform .25s;pointer-events:none;white-space:nowrap;max-width:90%}
 #toast.show{transform:translateX(-50%) translateY(0)}
+.launch-overlay{position:fixed;z-index:300;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;transition:left .3s cubic-bezier(.32,.72,.24,1),top .3s cubic-bezier(.32,.72,.24,1),width .3s cubic-bezier(.32,.72,.24,1),height .3s cubic-bezier(.32,.72,.24,1),border-radius .3s cubic-bezier(.32,.72,.24,1)}
+.launch-overlay::before{content:"";position:absolute;z-index:1;top:-38%;left:-14%;width:128%;height:66%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 60%)}
+.launch-overlay .app-glyph{position:relative;z-index:2;width:27px;height:27px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.launch-overlay.zoom{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0!important}
 .vocab-stats{display:flex;justify-content:space-around;background:var(--glass);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:16px}
 .vocab-stats .vs-item{text-align:center}
 .vocab-stats .vs-num{font-size:20px;font-weight:800;color:var(--blue)}

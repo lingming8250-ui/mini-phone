@@ -117,18 +117,34 @@ function switchTab(tab){
   if(top&&top.kind==='wechat')top.tab=tab;else stack.push({kind:'wechat',tab});
   renderView();
 }
+function openApp(app){
+  if(app==='wechat')navigate({kind:'wechat',tab:'wechat'});
+  else if(app==='vocab')navigate({kind:'sub',id:'sub-vocab'});
+  else if(app==='settings')navigate({kind:'sub',id:'sub-settings'});
+  else if(app==='lore')navigate({kind:'sub',id:'sub-lore'});
+  else if(app==='memory')navigate({kind:'sub',id:'sub-memory'});
+  else if(app==='data')navigate({kind:'sub',id:'sub-data'});
+}
+function launchApp(el,app){
+  const rect=el.getBoundingClientRect();
+  const overlay=document.createElement('div');
+  overlay.className='launch-overlay';
+  overlay.style.left=rect.left+'px';
+  overlay.style.top=rect.top+'px';
+  overlay.style.width=rect.width+'px';
+  overlay.style.height=rect.height+'px';
+  overlay.style.borderRadius=getComputedStyle(el).borderRadius||'21px';
+  overlay.style.background=getComputedStyle(el).backgroundImage||getComputedStyle(el).background;
+  const glyph=el.querySelector('.app-glyph');
+  if(glyph){overlay.appendChild(glyph.cloneNode(true));}
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>overlay.classList.add('zoom')));
+  setTimeout(()=>{overlay.remove();openApp(app);},300);
+}
 document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click',back));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
-document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>{
-  const a=el.dataset.app;
-  if(a==='wechat')navigate({kind:'wechat',tab:'wechat'});
-  if(a==='vocab')navigate({kind:'sub',id:'sub-vocab'});
-  if(a==='settings')navigate({kind:'sub',id:'sub-settings'});
-  if(a==='lore')navigate({kind:'sub',id:'sub-lore'});
-  if(a==='memory')navigate({kind:'sub',id:'sub-memory'});
-  if(a==='data')navigate({kind:'sub',id:'sub-data'});
-}));
+document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>launchApp(el,el.dataset.app)));
 function tick(){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   $('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());
