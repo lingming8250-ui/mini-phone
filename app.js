@@ -10,7 +10,7 @@ let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dse
 let chars=load(LS.chars,[]);if(!Array.isArray(chars))chars=[];
 let chats=load(LS.chats,{});if(!chats||typeof chats!=='object'||Array.isArray(chats))chats={};
 let protas=load(LS.protas,null);
-if(!Array.isArray(protas)||!protas.length){const old=load('mt3_prota',{name:'我',desc:''});protas=[{id:'p1',name:(old&&old.name)||'我',desc:(old&&old.desc)||''}];}
+if(!Array.isArray(protas)||!protas.length){const old=load('mt3_prota',{name:'我',desc:''});protas=[{id:'p1',name:(old&&old.name)||'我',desc:(old&&old.desc)||''];};
 let protaId=load(LS.protaId,protas[0].id);
 function getProta(){return protas.find(p=>p.id===protaId)||protas[0];}
 let wallet=load(LS.wallet,{balance:0,bills:[]});if(!wallet||typeof wallet!=='object')wallet={balance:0,bills:[]};if(!Array.isArray(wallet.bills))wallet.bills=[];if(typeof wallet.balance!=='number')wallet.balance=0;
@@ -77,7 +77,7 @@ function getChar(id){return chars.find(c=>c.id===id)||null}
 function fmtTime(ts){if(!ts)return '';const d=new Date(ts),now=new Date(),p=n=>String(n).padStart(2,'0');if(d.toDateString()===now.toDateString())return p(d.getHours())+':'+p(d.getMinutes());if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'/'+d.getDate();return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
 function todayStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
+document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip,.wp-tab');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
 let stack=[{kind:'home'}];
 function renderView(){
   const v=stack[stack.length-1];
@@ -134,6 +134,7 @@ document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click'
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
 document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el,el.dataset.app)));
+document.querySelectorAll('.wp-tab').forEach(t=>t.addEventListener('click',()=>{wpTarget=t.dataset.wp;renderWallpaper();}));
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');const t=p(d.getHours())+':'+p(d.getMinutes());$('sbTime').textContent=t;const a=$('lsTime');if(a)a.textContent=t;const b=$('npTime');if(b)b.textContent=t;const date=(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+'日一二三四五六'[d.getDay()];const c=$('lsDate');if(c)c.textContent=date;const e=$('npDate');if(e)e.textContent=date;}
 tick();setInterval(tick,10000);
 function applyWallpaper(){
@@ -149,9 +150,7 @@ function setCurWp(wp,img){
 }
 function renderWallpaper(){
   const tabs=$('wpTabs');
-  if(tabs){
-    tabs.querySelectorAll('.wp-tab').forEach(t=>t.classList.toggle('on',t.dataset.wp===wpTarget));
-  }
+  if(tabs){tabs.querySelectorAll('.wp-tab').forEach(t=>t.classList.toggle('on',t.dataset.wp===wpTarget));}
   const cur=getCurWp();
   const box=$('wpGrid');box.innerHTML='';
   WALLPAPERS.forEach(w=>{const d=document.createElement('div');d.className='wp-item'+(w.id===cur.wp?' sel':'');d.style.background=w.bg;d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;d.onclick=()=>{setCurWp(w.id,null);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};box.appendChild(d);});
