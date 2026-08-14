@@ -30,13 +30,15 @@
 </div>
 
 <div id="notifPanel" class="notif-panel">
-  <div class="np-time" id="npTime">00:00</div>
-  <div class="np-date" id="npDate">-</div>
-  <div class="np-toggles">
-    <div class="np-toggle on"><span class="ico">📶</span>WiFi</div>
-    <div class="np-toggle on"><span class="ico">🔵</span>蓝牙</div>
-    <div class="np-toggle"><span class="ico">✈️</span>飞行</div>
+  <div class="np-head">
+    <div class="np-clock">
+      <div class="np-time" id="npTime">00:00</div>
+      <div class="np-date" id="npDate">-</div>
+    </div>
+    <button class="np-clear" id="btnClearNotifs">清空</button>
   </div>
+  <div class="np-list" id="notifList"></div>
+  <div class="np-grabber"></div>
 </div>
 
 <div id="home" class="screen active">
@@ -169,6 +171,11 @@
     </div>
     <div class="group-title">对话</div>
     <div class="group"><div class="cell"><span class="label">流式输出</span><div class="switch on" id="setStream"></div></div></div>
+    <div class="group-title">主动消息</div>
+    <div class="group">
+      <div class="cell"><span class="label">开启主动消息</span><div class="switch" id="setActive"></div></div>
+      <div class="cell"><span class="label">间隔（分钟）</span><input class="cell-edit" id="setActiveInterval" type="number" value="30" style="width:80px;text-align:right"></div>
+    </div>
     <div class="group-title">系统提示词模板（{name}替换角色名）</div>
     <div class="group"><div class="cell" style="flex-direction:column;align-items:stretch"><textarea class="cell-edit" id="setSysPrompt" style="min-height:90px"></textarea></div></div>
     <div class="group-title">个性化</div>
