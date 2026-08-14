@@ -64,7 +64,7 @@ function getChar(id){return chars.find(c=>c.id===id)||null}
 function fmtTime(ts){if(!ts)return '';const d=new Date(ts),now=new Date(),p=n=>String(n).padStart(2,'0');if(d.toDateString()===now.toDateString())return p(d.getHours())+':'+p(d.getMinutes());if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'/'+d.getDate();return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
 function todayStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
+document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip,.np-toggle');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
 let stack=[{kind:'home'}];
 function renderView(){
   const v=stack[stack.length-1];
@@ -121,7 +121,7 @@ document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click'
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
 document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el,el.dataset.app)));
-function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');$('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());$('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');const t=p(d.getHours())+':'+p(d.getMinutes());$('sbTime').textContent=t;const a=$('lsTime');if(a)a.textContent=t;const b=$('npTime');if(b)b.textContent=t;const date=(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+'日一二三四五六'[d.getDay()];const c=$('lsDate');if(c)c.textContent=date;const e=$('npDate');if(e)e.textContent=date;}
 tick();setInterval(tick,10000);
 function applyWallpaper(){
   if(wallpaper==='custom'&&wpImgUrl){$('homeWall').style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';$('wallpaperName').textContent='自定义';}
@@ -147,10 +147,7 @@ function renderChatList(){
   const pr=getProta();
   let items=chars.filter(c=>(chats[c.id]||[]).length).sort((a,b)=>{const la=chats[a.id]?.[chats[a.id].length-1]?.time||0;const lb=chats[b.id]?.[chats[b.id].length-1]?.time||0;return lb-la;});
   if(chatFilter)items=items.filter(c=>c.name.includes(chatFilter));
-  if(!items.length){
-    box.innerHTML=chatFilter?'<div class="empty">没有匹配的会话</div>':'<div class="empty">还没有会话<br>点右上角「＋」添加好友</div>';
-    return;
-  }
+  if(!items.length){box.innerHTML=chatFilter?'<div class="empty">没有匹配的会话</div>':'<div class="empty">还没有会话<br>点右上角「＋」添加好友</div>';return;}
   items.forEach(c=>{const msgs=chats[c.id]||[],last=msgs[msgs.length-1];const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((last.role==='user'?(pr.name+'：'):'')+(last.type==='image'?'[图片]':last.content))}</div></div><div class="time">${fmtTime(last.time)}</div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});
 }
 function renderContacts(){const box=$('contactList');box.innerHTML='';let items=chars;if(contactFilter)items=items.filter(c=>c.name.includes(contactFilter));if(!items.length){box.innerHTML=contactFilter?'<div class="empty">没有匹配的联系人</div>':'<div class="empty">通讯录空空如也<br>点右上角「＋」添加角色</div>';return;}items.forEach(c=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((c.desc||c.personality||'暂无简介')).slice(0,30)}</div></div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});}
@@ -205,14 +202,9 @@ $('btnWechatAdd').onclick=()=>{openSheet(`<div class="menu-item" id="mAddFriend"
 function openAddFriendSheet(){
   if(!chars.length){toast('先去通讯录创建角色');return;}
   let html='<div class="group-title">选择主角人设</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px">';
-  protas.forEach(p=>{
-    const on=p.id===protaId;
-    html+=`<div class="prota-chip" id="chip_${p.id}" style="padding:8px 14px;border-radius:20px;background:${on?'rgba(10,132,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'var(--blue)':'var(--border)'};cursor:pointer;font-size:13px">${esc(p.name)}</div>`;
-  });
+  protas.forEach(p=>{const on=p.id===protaId;html+=`<div class="prota-chip" id="chip_${p.id}" style="padding:8px 14px;border-radius:20px;background:${on?'rgba(10,132,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'var(--blue)':'var(--border)'};cursor:pointer;font-size:13px">${esc(p.name)}</div>`;});
   html+='</div><div class="group-title">选择好友</div>';
-  chars.forEach(c=>{
-    html+=`<div class="menu-item" id="friend_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span><span class="mi-chev">›</span></div>`;
-  });
+  chars.forEach(c=>{html+=`<div class="menu-item" id="friend_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span><span class="mi-chev">›</span></div>`;});
   html+='<button class="btn gray" id="afCancel" style="margin-top:10px">取消</button>';
   openSheet(html);
   protas.forEach(p=>{const chip=$('chip_'+p.id);if(chip)chip.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);openAddFriendSheet();};});
@@ -252,6 +244,33 @@ $('btnSaveSet').onclick=saveSet;
 $('btnSend').onclick=send;
 $('input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'});
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
+function initLock(){
+  const ls=$('lockScreen');if(!ls)return;
+  let sy=0;
+  ls.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
+  ls.addEventListener('touchend',e=>{if(sy-e.changedTouches[0].clientY>40)unlock();},{passive:true});
+  ls.addEventListener('click',unlock);
+}
+function unlock(){const ls=$('lockScreen');if(!ls)return;if(!ls.classList.contains('show'))return;ls.classList.remove('show');ls.classList.add('hide');}
+function initNotif(){
+  let sy=0,sx=0;
+  document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dy=e.changedTouches[0].clientY-sy;
+    const dx=e.changedTouches[0].clientX-sx;
+    if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();
+  },{passive:true});
+  const np=$('notifPanel');if(np){
+    let npy=0;
+    np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});
+    np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});
+  }
+  document.querySelectorAll('.np-toggle').forEach(t=>{t.addEventListener('click',()=>{t.classList.toggle('on');});});
+}
+function openNotif(){const np=$('notifPanel');if(np)np.classList.add('show');}
+function closeNotif(){const np=$('notifPanel');if(np)np.classList.remove('show');}
+initLock();
+initNotif();
 if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister())}).catch(()=>{});}
 applyWallpaper();
 renderChatList();renderContacts();renderMe();renderWallet();
