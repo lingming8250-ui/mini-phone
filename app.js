@@ -3,7 +3,7 @@ const LS_OK = (function(){try{localStorage.setItem('__t__','1');localStorage.rem
 let warnedNoStore=false;
 function save(k,v){memStore[k]=v;if(LS_OK){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}else if(!warnedNoStore){warnedNoStore=true;toast('浏览器存储不可用，数据仅本次有效')}}
 function load(k,d){let raw=null;if(LS_OK){try{raw=localStorage.getItem(k)}catch(e){}}if(raw===null&&memStore[k]!==undefined)raw=JSON.stringify(memStore[k]);if(raw===null||raw===undefined)return d;try{return JSON.parse(raw)}catch(e){return d}}
-const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',protas:'mt3_protas',protaId:'mt3_protaid',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper',wpimg:'mt3_wpimg',notifs:'mt3_notifs',activeMsg:'mt3_active'};
+const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',protas:'mt3_protas',protaId:'mt3_protaid',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper',wpimg:'mt3_wpimg',lockWall:'mt3_lockwall',lockWpImg:'mt3_lockwpimg',notifWall:'mt3_notifwall',notifWpImg:'mt3_notifwpimg',notifs:'mt3_notifs',activeMsg:'mt3_active'};
 const DEFAULT_SYS='你正在扮演角色「{name}」。严格贴合人设对话，自然生活化，模仿真人语气，口语化表达。禁止出现"作为AI""作为语言模型""很高兴为您服务"等AI话术痕迹。不要解释设定，直接进入角色，回复长度适中。';
 const dset={baseurl:'',apiKey:'',model:'',temperature:0.9,topP:1,maxTokens:1024,stream:true,sys:DEFAULT_SYS};
 let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dset,...st};
@@ -37,9 +37,19 @@ const WALLPAPERS=[
 {id:'night',name:'星夜',bg:'radial-gradient(ellipse at 30% 25%, rgba(80,90,200,.3), transparent 50%), radial-gradient(ellipse at 75% 70%, rgba(20,40,90,.35), transparent 52%), #02030a'}
 ];
 let wallpaper=load(LS.wallpaper,'aurora');
+let lockWallpaper=load(LS.lockWall,'aurora');
+let notifWallpaper=load(LS.notifWall,'aurora');
 if(!WALLPAPERS.some(w=>w.id===wallpaper)&&wallpaper!=='custom')wallpaper='aurora';
-let wpImgUrl=null;
-(function initWPImg(){try{const raw=localStorage.getItem(LS.wpimg);if(raw){wpImgUrl=raw;}}catch(e){}})();
+if(!WALLPAPERS.some(w=>w.id===lockWallpaper)&&lockWallpaper!=='custom')lockWallpaper='aurora';
+if(!WALLPAPERS.some(w=>w.id===notifWallpaper)&&notifWallpaper!=='custom')notifWallpaper='aurora';
+let wpImgUrl=null,lockImgUrl=null,notifImgUrl=null;
+(function initWPImg(){
+  try{const r=localStorage.getItem(LS.wpimg);if(r)wpImgUrl=r;}catch(e){}
+  try{const r=localStorage.getItem(LS.lockWpImg);if(r)lockImgUrl=r;}catch(e){}
+  try{const r=localStorage.getItem(LS.notifWpImg);if(r)notifImgUrl=r;}catch(e){}
+})();
+let wpTarget='home';
+function getBg(wp,img){if(wp==='custom'&&img)return '#08080c url('+img+') center/cover no-repeat';const w=WALLPAPERS.find(x=>x.id===wp)||WALLPAPERS[0];return w.bg;}
 const BUILTIN_WORDS=[
 {w:'abandon',m:'放弃'},{w:'absorb',m:'吸收'},{w:'abundant',m:'丰富的'},{w:'access',m:'进入；通道'},{w:'accompany',m:'陪伴'},
 {w:'accomplish',m:'完成'},{w:'accurate',m:'准确的'},{w:'achieve',m:'实现'},{w:'acquire',m:'获得'},{w:'adapt',m:'适应'},
@@ -127,16 +137,25 @@ document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',(
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');const t=p(d.getHours())+':'+p(d.getMinutes());$('sbTime').textContent=t;const a=$('lsTime');if(a)a.textContent=t;const b=$('npTime');if(b)b.textContent=t;const date=(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+'日一二三四五六'[d.getDay()];const c=$('lsDate');if(c)c.textContent=date;const e=$('npDate');if(e)e.textContent=date;}
 tick();setInterval(tick,10000);
 function applyWallpaper(){
-  let bg='';
-  if(wallpaper==='custom'&&wpImgUrl){bg='#08080c url('+wpImgUrl+') center/cover no-repeat';$('wallpaperName').textContent='自定义';}
-  else{const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];bg=wp.bg;$('wallpaperName').textContent=wp.name;}
-  $('homeWall').style.background=bg;
-  const ls=$('lockScreen');if(ls)ls.style.background=bg;
+  $('homeWall').style.background=getBg(wallpaper,wpImgUrl);
+  const ls=$('lockScreen');if(ls)ls.style.background=getBg(lockWallpaper,lockImgUrl);
+  const np=$('notifPanel');if(np)np.style.background=getBg(notifWallpaper,notifImgUrl);
+}
+function getCurWp(){if(wpTarget==='lock')return {wp:lockWallpaper,img:lockImgUrl};if(wpTarget==='notif')return {wp:notifWallpaper,img:notifImgUrl};return {wp:wallpaper,img:wpImgUrl};}
+function setCurWp(wp,img){
+  if(wpTarget==='lock'){lockWallpaper=wp;lockImgUrl=img;save(LS.lockWall,wp);try{if(img)localStorage.setItem(LS.lockWpImg,img);else localStorage.removeItem(LS.lockWpImg);}catch(e){}}
+  else if(wpTarget==='notif'){notifWallpaper=wp;notifImgUrl=img;save(LS.notifWall,wp);try{if(img)localStorage.setItem(LS.notifWpImg,img);else localStorage.removeItem(LS.notifWpImg);}catch(e){}}
+  else{wallpaper=wp;wpImgUrl=img;save(LS.wallpaper,wp);try{if(img)localStorage.setItem(LS.wpimg,img);else localStorage.removeItem(LS.wpimg);}catch(e){}}
 }
 function renderWallpaper(){
+  const tabs=$('wpTabs');
+  if(tabs){
+    tabs.querySelectorAll('.wp-tab').forEach(t=>t.classList.toggle('on',t.dataset.wp===wpTarget));
+  }
+  const cur=getCurWp();
   const box=$('wpGrid');box.innerHTML='';
-  WALLPAPERS.forEach(w=>{const d=document.createElement('div');d.className='wp-item'+(w.id===wallpaper?' sel':'');d.style.background=w.bg;d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};box.appendChild(d);});
-  if(wpImgUrl){const d=document.createElement('div');d.className='wp-item'+(wallpaper==='custom'?' sel':'');d.style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';d.innerHTML=`<div class="wp-label">自定义</div><div class="wp-check">✓</div>`;d.onclick=()=>{wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到自定义壁纸')};box.appendChild(d);}
+  WALLPAPERS.forEach(w=>{const d=document.createElement('div');d.className='wp-item'+(w.id===cur.wp?' sel':'');d.style.background=w.bg;d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;d.onclick=()=>{setCurWp(w.id,null);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};box.appendChild(d);});
+  if(cur.img){const d=document.createElement('div');d.className='wp-item'+(cur.wp==='custom'?' sel':'');d.style.background='#08080c url('+cur.img+') center/cover no-repeat';d.innerHTML=`<div class="wp-label">自定义</div><div class="wp-check">✓</div>`;d.onclick=()=>{setCurWp('custom',cur.img);applyWallpaper();renderWallpaper();toast('已切换到自定义壁纸')};box.appendChild(d);}
   const up=document.createElement('div');up.className='wp-item';up.style.cssText='display:flex;align-items:center;justify-content:center;font-size:30px;border:2px dashed rgba(255,255,255,.25)';up.innerHTML='<div style="text-align:center"><div>＋</div><div style="font-size:11px;color:var(--text2)">上传图片</div></div>';up.onclick=()=>{$('fileWP').click()};box.appendChild(up);
 }
 function allWords(){return BUILTIN_WORDS.concat(vocab.custom)}
@@ -148,14 +167,7 @@ function renderVocabStatsOnly(){$('vsToday').textContent=vocab.today;const total
 function renderWrongList(){const box=$('wrongList');box.innerHTML='';const keys=Object.keys(vocab.wrong);if(!keys.length){box.innerHTML='<div class="empty" style="padding:20px">暂无错词，加油</div>';return}keys.forEach(k=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="info"><div class="name">${esc(k)}</div><div class="last">${esc(vocab.wrong[k].m)} · 错 ${vocab.wrong[k].times} 次</div></div>`;box.appendChild(d);});}
 $('btnNext').onclick=()=>{newQuestion()};
 $('btnVocabAdd').onclick=()=>{openSheet(`<div class="field"><label>英文单词</label><input id="newWord" placeholder="如：serendipity"></div><div class="field"><label>中文释义</label><input id="newMeaning" placeholder="如：意外发现珍宝的运气"></div><button class="btn wx" id="btnWordOk">添加</button><button class="btn gray" id="btnWordCancel">取消</button>`);$('btnWordOk').onclick=()=>{const w=$('newWord').value.trim(),m=$('newMeaning').value.trim();if(!w||!m){toast('单词和释义都要填');return}if(allWords().some(x=>x.w===w)){toast('这个词已经在词库里了');return}vocab.custom.push({w,m});save(LS.vocab,vocab);closeSheet();toast('已添加');newQuestion();};$('btnWordCancel').onclick=closeSheet;};
-function renderChatList(){
-  const box=$('chatList');box.innerHTML='';
-  const pr=getProta();
-  let items=chars.filter(c=>(chats[c.id]||[]).length).sort((a,b)=>{const la=chats[a.id]?.[chats[a.id].length-1]?.time||0;const lb=chats[b.id]?.[chats[b.id].length-1]?.time||0;return lb-la;});
-  if(chatFilter)items=items.filter(c=>c.name.includes(chatFilter));
-  if(!items.length){box.innerHTML=chatFilter?'<div class="empty">没有匹配的会话</div>':'<div class="empty">还没有会话<br>点右上角「＋」添加好友</div>';return;}
-  items.forEach(c=>{const msgs=chats[c.id]||[],last=msgs[msgs.length-1];const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((last.role==='user'?(pr.name+'：'):'')+(last.type==='image'?'[图片]':last.content))}</div></div><div class="time">${fmtTime(last.time)}</div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});
-}
+function renderChatList(){const box=$('chatList');box.innerHTML='';const pr=getProta();let items=chars.filter(c=>(chats[c.id]||[]).length).sort((a,b)=>{const la=chats[a.id]?.[chats[a.id].length-1]?.time||0;const lb=chats[b.id]?.[chats[b.id].length-1]?.time||0;return lb-la;});if(chatFilter)items=items.filter(c=>c.name.includes(chatFilter));if(!items.length){box.innerHTML=chatFilter?'<div class="empty">没有匹配的会话</div>':'<div class="empty">还没有会话<br>点右上角「＋」添加好友</div>';return;}items.forEach(c=>{const msgs=chats[c.id]||[],last=msgs[msgs.length-1];const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((last.role==='user'?(pr.name+'：'):'')+(last.type==='image'?'[图片]':last.content))}</div></div><div class="time">${fmtTime(last.time)}</div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});}
 function renderContacts(){const box=$('contactList');box.innerHTML='';let items=chars;if(contactFilter)items=items.filter(c=>c.name.includes(contactFilter));if(!items.length){box.innerHTML=contactFilter?'<div class="empty">没有匹配的联系人</div>':'<div class="empty">通讯录空空如也<br>点右上角「＋」添加角色</div>';return;}items.forEach(c=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((c.desc||c.personality||'暂无简介')).slice(0,30)}</div></div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});}
 function renderMe(){const p=getProta();$('meName').textContent=p.name||'未设置';$('meAvatar').textContent=(p.name||'我')[0];$('walletPreview').textContent='¥'+wallet.balance.toFixed(2);const n=moments.length;const b=$('momentsBadge');if(n){b.style.display='flex';b.textContent=n}else b.style.display='none';}
 function scrollBottom(){const c=$('chatMsgList');c.scrollTop=c.scrollHeight}
@@ -216,13 +228,13 @@ $('sheetMask').onclick=closeSheet;
 function openAddCharSheet(){openSheet(`<div class="field"><label>名字</label><input id="newCharName" placeholder="角色叫什么"></div><div class="field"><label>性格 / 人设</label><textarea id="newCharPersonality" placeholder="ta 是什么性格，怎么说话…"></textarea></div><div class="field"><label>背景设定（可选）</label><textarea id="newCharDesc" placeholder="ta 的身份、背景故事…"></textarea></div><div class="field"><label>开场白（可选）</label><textarea id="newCharFirst" placeholder="填了的话，创建后 ta 会先发这句"></textarea></div><button class="btn wx" id="btnNewCharOk">创建并聊天</button><div style="text-align:center;color:var(--text2);font-size:12px;margin:10px 0">—— 或者 ——</div><button class="btn gray" id="btnSheetImportPng">📥 导入 PNG 角色卡</button><button class="btn gray" id="btnSheetCancel">取消</button>`);$('btnNewCharOk').onclick=function(){try{const n=$('newCharName').value.trim();if(!n){toast('名字不能为空');return}const c=addChar({name:n,personality:$('newCharPersonality').value.trim(),desc:$('newCharDesc').value.trim(),first_mes:$('newCharFirst').value.trim()});closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});toast('已创建：'+c.name);}catch(e){toast('创建失败：'+(e&&e.message?e.message:e))}};$('btnSheetImportPng').onclick=function(){closeSheet();$('filePNG').click()};$('btnSheetCancel').onclick=closeSheet;}
 $('btnAddChar').onclick=openAddCharSheet;
 $('filePNG').addEventListener('change',function(){const f=this.files[0];if(!f)return;f.arrayBuffer().then(buf=>{try{const c=addChar(normChara(parsePNG(buf)));navigate({kind:'wechat',tab:'contacts'});toast('已添加角色：'+c.name);}catch(e){toast('导入失败：'+e.message)}});this.value='';});
-$('fileWP').addEventListener('change',function(){const f=this.files[0];if(!f)return;if(f.size>4*1024*1024){toast('图片太大，选 4MB 以内的');this.value='';return}const reader=new FileReader();reader.onload=()=>{wpImgUrl=reader.result;try{localStorage.setItem(LS.wpimg,wpImgUrl);}catch(e){}wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('壁纸已设置');};reader.readAsDataURL(f);this.value='';});
+$('fileWP').addEventListener('change',function(){const f=this.files[0];if(!f)return;if(f.size>4*1024*1024){toast('图片太大，选 4MB 以内的');this.value='';return}const reader=new FileReader();reader.onload=()=>{const img=reader.result;setCurWp('custom',img);applyWallpaper();renderWallpaper();toast('壁纸已设置');};reader.readAsDataURL(f);this.value='';});
 $('btnChatMore').onclick=()=>{openSheet(`<div class="menu-item" id="mRegenAll" style="border:none;border-radius:10px;margin-bottom:6px">🔄 重新生成最后回复</div><div class="menu-item" id="mClear" style="border:none;border-radius:10px;color:var(--red)">🗑 清空聊天记录</div><button class="btn gray" id="mMoreCancel" style="margin-top:10px">取消</button>`);$('mRegenAll').onclick=()=>{closeSheet();const msgs=chats[activeCharId]||[];let li=-1;for(let i=msgs.length-1;i>=0;i--){if(msgs[i].role==='assistant'){li=i;break}}if(li<0){toast('没有可重新生成的回复');return}regenAt(li)};$('mClear').onclick=()=>{if(!confirm('清空当前角色聊天记录？'))return;chats[activeCharId]=[];save(LS.chats,chats);closeSheet();renderChat();toast('已清空')};$('mMoreCancel').onclick=closeSheet;};
 $('searchChat').addEventListener('input',e=>{chatFilter=e.target.value.trim();renderChatList()});
 $('searchContact').addEventListener('input',e=>{contactFilter=e.target.value.trim();renderContacts()});
-$('btnExport').onclick=()=>{const data={st,chars,chats,protas,protaId,wallet,moments,lore,mem,vocab,wallpaper,notifs,activeMsg,t:new Date().toISOString()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='小手机备份.json';a.click();URL.revokeObjectURL(a.href);toast('已导出');};
+$('btnExport').onclick=()=>{const data={st,chars,chats,protas,protaId,wallet,moments,lore,mem,vocab,wallpaper,lockWallpaper,notifWallpaper,notifs,activeMsg,t:new Date().toISOString()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='小手机备份.json';a.click();URL.revokeObjectURL(a.href);toast('已导出');};
 $('btnImportTrigger').onclick=()=>$('fileImport').click();
-$('fileImport').addEventListener('change',function(){const f=this.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.st){st={...dset,...d.st};save(LS.s,st)}if(d.chars){chars=d.chars;save(LS.chars,chars)}if(d.chats){chats=d.chats;save(LS.chats,chats)}if(d.protas){protas=d.protas;save(LS.protas,protas)}if(d.protaId){protaId=d.protaId;save(LS.protaId,protaId)}if(d.wallet){wallet=d.wallet;save(LS.wallet,wallet)}if(d.moments){moments=d.moments;save(LS.moments,moments)}if(d.lore){lore=d.lore;save(LS.w,lore)}if(d.mem){mem=d.mem;save(LS.mem,mem)}if(d.vocab){vocab=d.vocab;save(LS.vocab,vocab)}if(d.wallpaper){wallpaper=d.wallpaper;save(LS.wallpaper,wallpaper)}if(d.notifs){notifs=d.notifs;save(LS.notifs,notifs)}if(d.activeMsg){activeMsg=d.activeMsg;save(LS.activeMsg,activeMsg)}applyWallpaper();renderChatList();renderContacts();renderMe();renderWallet();toast('导入成功');}catch(e){toast('导入失败：'+e.message)}};r.readAsText(f);this.value='';});
+$('fileImport').addEventListener('change',function(){const f=this.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.st){st={...dset,...d.st};save(LS.s,st)}if(d.chars){chars=d.chars;save(LS.chars,chars)}if(d.chats){chats=d.chats;save(LS.chats,chats)}if(d.protas){protas=d.protas;save(LS.protas,protas)}if(d.protaId){protaId=d.protaId;save(LS.protaId,protaId)}if(d.wallet){wallet=d.wallet;save(LS.wallet,wallet)}if(d.moments){moments=d.moments;save(LS.moments,moments)}if(d.lore){lore=d.lore;save(LS.w,lore)}if(d.mem){mem=d.mem;save(LS.mem,mem)}if(d.vocab){vocab=d.vocab;save(LS.vocab,vocab)}if(d.wallpaper){wallpaper=d.wallpaper;save(LS.wallpaper,wallpaper)}if(d.lockWallpaper){lockWallpaper=d.lockWallpaper;save(LS.lockWall,lockWallpaper)}if(d.notifWallpaper){notifWallpaper=d.notifWallpaper;save(LS.notifWall,notifWallpaper)}if(d.notifs){notifs=d.notifs;save(LS.notifs,notifs)}if(d.activeMsg){activeMsg=d.activeMsg;save(LS.activeMsg,activeMsg)}applyWallpaper();renderChatList();renderContacts();renderMe();renderWallet();toast('导入成功');}catch(e){toast('导入失败：'+e.message)}};r.readAsText(f);this.value='';});
 $('btnWipeAll').onclick=()=>{if(!confirm('恢复出厂设置？所有数据将被清除！'))return;localStorage.clear();location.reload();};
 $('btnSummarize').onclick=doSum;
 $('btnClearMemory').onclick=()=>{mem={};save(LS.mem,mem);renderMem();toast('记忆已清空')};
@@ -236,19 +248,7 @@ function unlock(){const ls=$('lockScreen');if(!ls)return;if(!ls.classList.contai
 function initNotif(){let sy=0,sx=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-sy;const dx=e.changedTouches[0].clientX-sx;if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();},{passive:true});const np=$('notifPanel');if(np){let npy=0;np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});}}
 function openNotif(){const np=$('notifPanel');if(np)np.classList.add('show');}
 function closeNotif(){const np=$('notifPanel');if(np)np.classList.remove('show');}
-function renderNotifs(){
-  const box=$('notifList');if(!box)return;
-  box.innerHTML='';
-  if(!notifs.length){box.innerHTML='<div class="empty" style="padding:30px">暂无通知</div>';return;}
-  notifs.forEach(n=>{
-    const d=document.createElement('div');
-    d.className='notif-item';
-    d.innerHTML=`<div class="ni-av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(n.charName[0]||'?')}</div><div class="ni-info"><div class="ni-name">${esc(n.charName)}</div><div class="ni-text">${esc(n.content)}</div></div><div class="ni-time">${fmtTime(n.time)}</div>`;
-    d.onclick=()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);closeNotif();activeCharId=n.charId;navigate({kind:'sub',id:'sub-chat'});};
-    bindSwipeDelete(d,()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);renderNotifs();});
-    box.appendChild(d);
-  });
-}
+function renderNotifs(){const box=$('notifList');if(!box)return;box.innerHTML='';if(!notifs.length){box.innerHTML='<div class="empty" style="padding:30px">暂无通知</div>';return;}notifs.forEach(n=>{const d=document.createElement('div');d.className='notif-item';d.innerHTML=`<div class="ni-av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(n.charName[0]||'?')}</div><div class="ni-info"><div class="ni-name">${esc(n.charName)}</div><div class="ni-text">${esc(n.content)}</div></div><div class="ni-time">${fmtTime(n.time)}</div>`;d.onclick=()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);closeNotif();activeCharId=n.charId;navigate({kind:'sub',id:'sub-chat'});};bindSwipeDelete(d,()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);renderNotifs();});box.appendChild(d);});}
 function bindSwipeDelete(el,cb){let sx=0,sy=0;el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});el.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-sx;const dy=e.touches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&dx<0){el.style.transform='translateX('+Math.max(dx,-100)+'px)';}},{passive:true});el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;el.style.transform='translateX(0)';if(dx<-60)cb();},{passive:true});}
 $('btnClearNotifs').onclick=()=>{notifs=[];save(LS.notifs,notifs);renderNotifs();toast('已清空通知');};
 function startActiveTimer(){if(activeTimer){clearInterval(activeTimer);activeTimer=null;}if(!activeMsg.enabled)return;activeTimer=setInterval(()=>{proactiveTick();},Math.max(5,activeMsg.interval)*60*1000);}
