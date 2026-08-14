@@ -3,7 +3,7 @@ const LS_OK = (function(){try{localStorage.setItem('__t__','1');localStorage.rem
 let warnedNoStore=false;
 function save(k,v){memStore[k]=v;if(LS_OK){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}else if(!warnedNoStore){warnedNoStore=true;toast('浏览器存储不可用，数据仅本次有效')}}
 function load(k,d){let raw=null;if(LS_OK){try{raw=localStorage.getItem(k)}catch(e){}}if(raw===null&&memStore[k]!==undefined)raw=JSON.stringify(memStore[k]);if(raw===null||raw===undefined)return d;try{return JSON.parse(raw)}catch(e){return d}}
-const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',protas:'mt3_protas',protaId:'mt3_protaid',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper',wpimg:'mt3_wpimg'};
+const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',protas:'mt3_protas',protaId:'mt3_protaid',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper',wpimg:'mt3_wpimg',notifs:'mt3_notifs',activeMsg:'mt3_active'};
 const DEFAULT_SYS='你正在扮演角色「{name}」。严格贴合人设对话，自然生活化，模仿真人语气，口语化表达。禁止出现"作为AI""作为语言模型""很高兴为您服务"等AI话术痕迹。不要解释设定，直接进入角色，回复长度适中。';
 const dset={baseurl:'',apiKey:'',model:'',temperature:0.9,topP:1,maxTokens:1024,stream:true,sys:DEFAULT_SYS};
 let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dset,...st};
@@ -25,6 +25,9 @@ if(typeof vocab.today!=='number')vocab.today=0;
 if(typeof vocab.right!=='number')vocab.right=0;
 if(typeof vocab.wrongCnt!=='number')vocab.wrongCnt=0;
 if(typeof vocab.lastDate!=='string')vocab.lastDate='';
+let notifs=load(LS.notifs,[]);if(!Array.isArray(notifs))notifs=[];
+let activeMsg=load(LS.activeMsg,{enabled:false,interval:30});if(!activeMsg||typeof activeMsg!=='object')activeMsg={enabled:false,interval:30};
+let activeTimer=null;
 const WALLPAPERS=[
 {id:'aurora',name:'极光',bg:'radial-gradient(ellipse at 20% 14%, rgba(94,60,255,.34), transparent 48%), radial-gradient(ellipse at 85% 30%, rgba(0,140,255,.28), transparent 50%), radial-gradient(ellipse at 55% 95%, rgba(255,80,150,.24), transparent 52%), #08080c'},
 {id:'ocean',name:'深海',bg:'radial-gradient(ellipse at 30% 20%, rgba(0,80,200,.4), transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(0,200,180,.3), transparent 50%), #04060c'},
@@ -64,7 +67,7 @@ function getChar(id){return chars.find(c=>c.id===id)||null}
 function fmtTime(ts){if(!ts)return '';const d=new Date(ts),now=new Date(),p=n=>String(n).padStart(2,'0');if(d.toDateString()===now.toDateString())return p(d.getHours())+':'+p(d.getMinutes());if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'/'+d.getDate();return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
 function todayStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip,.np-toggle');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
+document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
 let stack=[{kind:'home'}];
 function renderView(){
   const v=stack[stack.length-1];
@@ -124,8 +127,11 @@ document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',(
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');const t=p(d.getHours())+':'+p(d.getMinutes());$('sbTime').textContent=t;const a=$('lsTime');if(a)a.textContent=t;const b=$('npTime');if(b)b.textContent=t;const date=(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+'日一二三四五六'[d.getDay()];const c=$('lsDate');if(c)c.textContent=date;const e=$('npDate');if(e)e.textContent=date;}
 tick();setInterval(tick,10000);
 function applyWallpaper(){
-  if(wallpaper==='custom'&&wpImgUrl){$('homeWall').style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';$('wallpaperName').textContent='自定义';}
-  else{const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];$('homeWall').style.background=wp.bg;$('wallpaperName').textContent=wp.name;}
+  let bg='';
+  if(wallpaper==='custom'&&wpImgUrl){bg='#08080c url('+wpImgUrl+') center/cover no-repeat';$('wallpaperName').textContent='自定义';}
+  else{const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];bg=wp.bg;$('wallpaperName').textContent=wp.name;}
+  $('homeWall').style.background=bg;
+  const ls=$('lockScreen');if(ls)ls.style.background=bg;
 }
 function renderWallpaper(){
   const box=$('wpGrid');box.innerHTML='';
@@ -187,33 +193,14 @@ $('cellModel').onclick=()=>navigate({kind:'sub',id:'sub-models'});
 $('meProfile').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
 $('cellWallpaper').onclick=()=>navigate({kind:'sub',id:'sub-wallpaper'});
 $('cellAbout').onclick=()=>navigate({kind:'sub',id:'sub-about'});
-function renderProta(){
-  const box=$('protaList');box.innerHTML='';
-  protas.forEach(p=>{
-    const d=document.createElement('div');
-    d.className='c-item';
-    d.innerHTML=`<div class="info"><div class="name">${esc(p.name)}${p.id===protaId?' · 当前':''}</div><div class="last">${esc(p.desc||'暂无描述')}</div></div>`;
-    d.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);renderProta();renderMe();toast('已切换到 '+p.name);};
-    box.appendChild(d);
-  });
-}
+function renderProta(){const box=$('protaList');box.innerHTML='';protas.forEach(p=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="info"><div class="name">${esc(p.name)}${p.id===protaId?' · 当前':''}</div><div class="last">${esc(p.desc||'暂无描述')}</div></div>`;d.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);renderProta();renderMe();toast('已切换到 '+p.name);};box.appendChild(d);});}
 $('btnProtaAdd').onclick=()=>{openSheet(`<div class="field"><label>名字</label><input id="npName" placeholder="这个主角叫什么"></div><div class="field"><label>人设描述</label><textarea id="npDesc" placeholder="性格、身份、背景…"></textarea></div><button class="btn wx" id="npOk">创建</button><button class="btn gray" id="npCancel">取消</button>`);$('npOk').onclick=()=>{const n=$('npName').value.trim();if(!n){toast('名字不能为空');return}const p={id:uid(),name:n,desc:$('npDesc').value.trim()};protas.push(p);save(LS.protas,protas);protaId=p.id;save(LS.protaId,protaId);closeSheet();renderProta();toast('已创建：'+n);};$('npCancel').onclick=closeSheet;};
 $('btnWechatAdd').onclick=()=>{openSheet(`<div class="menu-item" id="mAddFriend" style="border:none;border-radius:12px;margin-bottom:8px">👤 添加好友</div><div class="menu-item" id="mAddGroup" style="border:none;border-radius:12px">👥 加入群聊</div><button class="btn gray" id="mWAddCancel" style="margin-top:12px">取消</button>`);$('mAddFriend').onclick=()=>{closeSheet();openAddFriendSheet();};$('mAddGroup').onclick=()=>{closeSheet();toast('群聊即将上线');};$('mWAddCancel').onclick=closeSheet;};
-function openAddFriendSheet(){
-  if(!chars.length){toast('先去通讯录创建角色');return;}
-  let html='<div class="group-title">选择主角人设</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px">';
-  protas.forEach(p=>{const on=p.id===protaId;html+=`<div class="prota-chip" id="chip_${p.id}" style="padding:8px 14px;border-radius:20px;background:${on?'rgba(10,132,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'var(--blue)':'var(--border)'};cursor:pointer;font-size:13px">${esc(p.name)}</div>`;});
-  html+='</div><div class="group-title">选择好友</div>';
-  chars.forEach(c=>{html+=`<div class="menu-item" id="friend_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span><span class="mi-chev">›</span></div>`;});
-  html+='<button class="btn gray" id="afCancel" style="margin-top:10px">取消</button>';
-  openSheet(html);
-  protas.forEach(p=>{const chip=$('chip_'+p.id);if(chip)chip.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);openAddFriendSheet();};});
-  chars.forEach(c=>{const item=$('friend_'+c.id);if(item)item.onclick=()=>{closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});};});
-  $('afCancel').onclick=closeSheet;
-}
-function fillSetForm(){$('setBaseurl').value=st.baseurl;$('setKey').value=st.apiKey;$('setModel').textContent=st.model||'未选择';$('setTemp').value=st.temperature;$('tempVal').textContent=st.temperature;$('setTopP').value=st.topP;$('topPVal').textContent=st.topP;$('setMaxTokens').value=st.maxTokens;$('setStream').classList.toggle('on',st.stream);$('setSysPrompt').value=st.sys;$('wallpaperName').textContent=wallpaper==='custom'?'自定义':(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;}
-function saveSet(){st.baseurl=$('setBaseurl').value.trim();st.apiKey=$('setKey').value.trim();st.temperature=parseFloat($('setTemp').value);st.topP=parseFloat($('setTopP').value);st.maxTokens=parseInt($('setMaxTokens').value)||1024;st.stream=$('setStream').classList.contains('on');st.sys=$('setSysPrompt').value;save(LS.s,st);toast('设置已保存');}
+function openAddFriendSheet(){if(!chars.length){toast('先去通讯录创建角色');return;}let html='<div class="group-title">选择主角人设</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px">';protas.forEach(p=>{const on=p.id===protaId;html+=`<div class="prota-chip" id="chip_${p.id}" style="padding:8px 14px;border-radius:20px;background:${on?'rgba(10,132,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'var(--blue)':'var(--border)'};cursor:pointer;font-size:13px">${esc(p.name)}</div>`;});html+='</div><div class="group-title">选择好友</div>';chars.forEach(c=>{html+=`<div class="menu-item" id="friend_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span><span class="mi-chev">›</span></div>`;});html+='<button class="btn gray" id="afCancel" style="margin-top:10px">取消</button>';openSheet(html);protas.forEach(p=>{const chip=$('chip_'+p.id);if(chip)chip.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);openAddFriendSheet();};});chars.forEach(c=>{const item=$('friend_'+c.id);if(item)item.onclick=()=>{closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});};});$('afCancel').onclick=closeSheet;}
+function fillSetForm(){$('setBaseurl').value=st.baseurl;$('setKey').value=st.apiKey;$('setModel').textContent=st.model||'未选择';$('setTemp').value=st.temperature;$('tempVal').textContent=st.temperature;$('setTopP').value=st.topP;$('topPVal').textContent=st.topP;$('setMaxTokens').value=st.maxTokens;$('setStream').classList.toggle('on',st.stream);$('setSysPrompt').value=st.sys;$('wallpaperName').textContent=wallpaper==='custom'?'自定义':(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;$('setActive').classList.toggle('on',activeMsg.enabled);$('setActiveInterval').value=activeMsg.interval;}
+function saveSet(){st.baseurl=$('setBaseurl').value.trim();st.apiKey=$('setKey').value.trim();st.temperature=parseFloat($('setTemp').value);st.topP=parseFloat($('setTopP').value);st.maxTokens=parseInt($('setMaxTokens').value)||1024;st.stream=$('setStream').classList.contains('on');st.sys=$('setSysPrompt').value;activeMsg.enabled=$('setActive').classList.contains('on');activeMsg.interval=parseInt($('setActiveInterval').value)||30;save(LS.s,st);save(LS.activeMsg,activeMsg);startActiveTimer();toast('设置已保存');}
 $('setStream').onclick=function(){this.classList.toggle('on')};
+$('setActive').onclick=function(){this.classList.toggle('on')};
 $('setTemp').oninput=e=>$('tempVal').textContent=e.target.value;
 $('setTopP').oninput=e=>$('topPVal').textContent=e.target.value;
 function loadModels(){const box=$('modelList');if(!st.baseurl||!st.apiKey){box.innerHTML='<div class="empty">先到设置页填 Base URL 和 API Key</div>';return}box.innerHTML='<div class="empty">⏳ 正在拉取模型列表…</div>';fetch(st.baseurl.replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+st.apiKey}}).then(res=>{if(!res.ok)throw new Error('HTTP '+res.status);return res.json()}).then(j=>{const arr=j.data||j.models||[];if(!arr.length){box.innerHTML='<div class="empty">接口返回空列表</div>';return}box.innerHTML='';arr.forEach(m=>{const id=m.id||m;const d=document.createElement('div');d.className='model-item'+(id===st.model?' sel':'');d.innerHTML=`<span class="mid">${esc(id)}</span><span class="check">✓</span>`;d.onclick=()=>{st.model=id;save(LS.s,st);$('setModel').textContent=id;toast('已选择 '+id);loadModels()};box.appendChild(d);});}).catch(e=>{box.innerHTML=`<div class="empty">拉取失败：${esc(e.message)}<br><br>部分服务商不支持 /models 接口</div>`});}
@@ -233,9 +220,9 @@ $('fileWP').addEventListener('change',function(){const f=this.files[0];if(!f)ret
 $('btnChatMore').onclick=()=>{openSheet(`<div class="menu-item" id="mRegenAll" style="border:none;border-radius:10px;margin-bottom:6px">🔄 重新生成最后回复</div><div class="menu-item" id="mClear" style="border:none;border-radius:10px;color:var(--red)">🗑 清空聊天记录</div><button class="btn gray" id="mMoreCancel" style="margin-top:10px">取消</button>`);$('mRegenAll').onclick=()=>{closeSheet();const msgs=chats[activeCharId]||[];let li=-1;for(let i=msgs.length-1;i>=0;i--){if(msgs[i].role==='assistant'){li=i;break}}if(li<0){toast('没有可重新生成的回复');return}regenAt(li)};$('mClear').onclick=()=>{if(!confirm('清空当前角色聊天记录？'))return;chats[activeCharId]=[];save(LS.chats,chats);closeSheet();renderChat();toast('已清空')};$('mMoreCancel').onclick=closeSheet;};
 $('searchChat').addEventListener('input',e=>{chatFilter=e.target.value.trim();renderChatList()});
 $('searchContact').addEventListener('input',e=>{contactFilter=e.target.value.trim();renderContacts()});
-$('btnExport').onclick=()=>{const data={st,chars,chats,protas,protaId,wallet,moments,lore,mem,vocab,wallpaper,t:new Date().toISOString()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='小手机备份.json';a.click();URL.revokeObjectURL(a.href);toast('已导出');};
+$('btnExport').onclick=()=>{const data={st,chars,chats,protas,protaId,wallet,moments,lore,mem,vocab,wallpaper,notifs,activeMsg,t:new Date().toISOString()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='小手机备份.json';a.click();URL.revokeObjectURL(a.href);toast('已导出');};
 $('btnImportTrigger').onclick=()=>$('fileImport').click();
-$('fileImport').addEventListener('change',function(){const f=this.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.st){st={...dset,...d.st};save(LS.s,st)}if(d.chars){chars=d.chars;save(LS.chars,chars)}if(d.chats){chats=d.chats;save(LS.chats,chats)}if(d.protas){protas=d.protas;save(LS.protas,protas)}if(d.protaId){protaId=d.protaId;save(LS.protaId,protaId)}if(d.wallet){wallet=d.wallet;save(LS.wallet,wallet)}if(d.moments){moments=d.moments;save(LS.moments,moments)}if(d.lore){lore=d.lore;save(LS.w,lore)}if(d.mem){mem=d.mem;save(LS.mem,mem)}if(d.vocab){vocab=d.vocab;save(LS.vocab,vocab)}if(d.wallpaper){wallpaper=d.wallpaper;save(LS.wallpaper,wallpaper)}applyWallpaper();renderChatList();renderContacts();renderMe();renderWallet();toast('导入成功');}catch(e){toast('导入失败：'+e.message)}};r.readAsText(f);this.value='';});
+$('fileImport').addEventListener('change',function(){const f=this.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.st){st={...dset,...d.st};save(LS.s,st)}if(d.chars){chars=d.chars;save(LS.chars,chars)}if(d.chats){chats=d.chats;save(LS.chats,chats)}if(d.protas){protas=d.protas;save(LS.protas,protas)}if(d.protaId){protaId=d.protaId;save(LS.protaId,protaId)}if(d.wallet){wallet=d.wallet;save(LS.wallet,wallet)}if(d.moments){moments=d.moments;save(LS.moments,moments)}if(d.lore){lore=d.lore;save(LS.w,lore)}if(d.mem){mem=d.mem;save(LS.mem,mem)}if(d.vocab){vocab=d.vocab;save(LS.vocab,vocab)}if(d.wallpaper){wallpaper=d.wallpaper;save(LS.wallpaper,wallpaper)}if(d.notifs){notifs=d.notifs;save(LS.notifs,notifs)}if(d.activeMsg){activeMsg=d.activeMsg;save(LS.activeMsg,activeMsg)}applyWallpaper();renderChatList();renderContacts();renderMe();renderWallet();toast('导入成功');}catch(e){toast('导入失败：'+e.message)}};r.readAsText(f);this.value='';});
 $('btnWipeAll').onclick=()=>{if(!confirm('恢复出厂设置？所有数据将被清除！'))return;localStorage.clear();location.reload();};
 $('btnSummarize').onclick=doSum;
 $('btnClearMemory').onclick=()=>{mem={};save(LS.mem,mem);renderMem();toast('记忆已清空')};
@@ -244,33 +231,33 @@ $('btnSaveSet').onclick=saveSet;
 $('btnSend').onclick=send;
 $('input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'});
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
-function initLock(){
-  const ls=$('lockScreen');if(!ls)return;
-  let sy=0;
-  ls.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
-  ls.addEventListener('touchend',e=>{if(sy-e.changedTouches[0].clientY>40)unlock();},{passive:true});
-  ls.addEventListener('click',unlock);
-}
+function initLock(){const ls=$('lockScreen');if(!ls)return;let sy=0;ls.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});ls.addEventListener('touchend',e=>{if(sy-e.changedTouches[0].clientY>40)unlock();},{passive:true});ls.addEventListener('click',unlock);}
 function unlock(){const ls=$('lockScreen');if(!ls)return;if(!ls.classList.contains('show'))return;ls.classList.remove('show');ls.classList.add('hide');}
-function initNotif(){
-  let sy=0,sx=0;
-  document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});
-  document.addEventListener('touchend',e=>{
-    const dy=e.changedTouches[0].clientY-sy;
-    const dx=e.changedTouches[0].clientX-sx;
-    if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();
-  },{passive:true});
-  const np=$('notifPanel');if(np){
-    let npy=0;
-    np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});
-    np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});
-  }
-  document.querySelectorAll('.np-toggle').forEach(t=>{t.addEventListener('click',()=>{t.classList.toggle('on');});});
-}
+function initNotif(){let sy=0,sx=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-sy;const dx=e.changedTouches[0].clientX-sx;if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();},{passive:true});const np=$('notifPanel');if(np){let npy=0;np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});}}
 function openNotif(){const np=$('notifPanel');if(np)np.classList.add('show');}
 function closeNotif(){const np=$('notifPanel');if(np)np.classList.remove('show');}
+function renderNotifs(){
+  const box=$('notifList');if(!box)return;
+  box.innerHTML='';
+  if(!notifs.length){box.innerHTML='<div class="empty" style="padding:30px">暂无通知</div>';return;}
+  notifs.forEach(n=>{
+    const d=document.createElement('div');
+    d.className='notif-item';
+    d.innerHTML=`<div class="ni-av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(n.charName[0]||'?')}</div><div class="ni-info"><div class="ni-name">${esc(n.charName)}</div><div class="ni-text">${esc(n.content)}</div></div><div class="ni-time">${fmtTime(n.time)}</div>`;
+    d.onclick=()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);closeNotif();activeCharId=n.charId;navigate({kind:'sub',id:'sub-chat'});};
+    bindSwipeDelete(d,()=>{notifs=notifs.filter(x=>x.id!==n.id);save(LS.notifs,notifs);renderNotifs();});
+    box.appendChild(d);
+  });
+}
+function bindSwipeDelete(el,cb){let sx=0,sy=0;el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});el.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-sx;const dy=e.touches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&dx<0){el.style.transform='translateX('+Math.max(dx,-100)+'px)';}},{passive:true});el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;el.style.transform='translateX(0)';if(dx<-60)cb();},{passive:true});}
+$('btnClearNotifs').onclick=()=>{notifs=[];save(LS.notifs,notifs);renderNotifs();toast('已清空通知');};
+function startActiveTimer(){if(activeTimer){clearInterval(activeTimer);activeTimer=null;}if(!activeMsg.enabled)return;activeTimer=setInterval(()=>{proactiveTick();},Math.max(5,activeMsg.interval)*60*1000);}
+async function proactiveTick(){if(sending)return;if(!st.baseurl||!st.apiKey||!st.model)return;if(!chars.length)return;const c=chars[Math.floor(Math.random()*chars.length)];const sys=buildProactiveSys(c);try{const url=st.baseurl.replace(/\/+$/,'')+'/chat/completions';const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+st.apiKey},body:JSON.stringify({model:st.model,stream:false,messages:[{role:'system',content:sys}],temperature:st.temperature,max_tokens:st.maxTokens})});if(!res.ok)return;const j=await res.json();const text=(j.choices?.[0]?.message?.content||'').trim();if(!text)return;if(!chats[c.id])chats[c.id]=[];chats[c.id].push({role:'assistant',type:'text',content:text,time:Date.now()});save(LS.chats,chats);const top=stack[stack.length-1];const inChat=top&&top.kind==='sub'&&top.id==='sub-chat'&&activeCharId===c.id;if(!inChat){notifs.unshift({id:uid(),charId:c.id,charName:c.name,content:text,time:Date.now()});save(LS.notifs,notifs);renderNotifs();}if(activeCharId===c.id)renderChat();renderChatList();}catch(e){}}
+function buildProactiveSys(c){const pr=getProta();const p=[];p.push(`你正在扮演角色「${c.name}」。`);if(c.personality)p.push(`【性格】\n${c.personality}`);if(c.desc)p.push(`【背景】\n${c.desc}`);p.push(`现在你要主动给「${pr.name||'对方'}」发一条消息，开启一个新话题。自然生活化，像真人一样，不要问"在吗"这种废话，不要解释你在做什么，直接说。简短一条即可。`);return p.join('\n\n');}
 initLock();
 initNotif();
+renderNotifs();
+startActiveTimer();
 if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister())}).catch(()=>{});}
 applyWallpaper();
 renderChatList();renderContacts();renderMe();renderWallet();
