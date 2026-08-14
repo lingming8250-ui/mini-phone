@@ -33,12 +33,7 @@ const WALLPAPERS=[
 let wallpaper=load(LS.wallpaper,'aurora');
 if(!WALLPAPERS.some(w=>w.id===wallpaper)&&wallpaper!=='custom')wallpaper='aurora';
 let wpImgUrl=null;
-(function initWPImg(){
-  try{
-    const raw=localStorage.getItem(LS.wpimg);
-    if(raw){wpImgUrl=raw;}
-  }catch(e){}
-})();
+(function initWPImg(){try{const raw=localStorage.getItem(LS.wpimg);if(raw){wpImgUrl=raw;}}catch(e){}})();
 const BUILTIN_WORDS=[
 {w:'abandon',m:'放弃'},{w:'absorb',m:'吸收'},{w:'abundant',m:'丰富的'},{w:'access',m:'进入；通道'},{w:'accompany',m:'陪伴'},
 {w:'accomplish',m:'完成'},{w:'accurate',m:'准确的'},{w:'achieve',m:'实现'},{w:'acquire',m:'获得'},{w:'adapt',m:'适应'},
@@ -103,11 +98,7 @@ function goHome(){stack=[{kind:'home'}];renderView()}
 function switchTab(tab){const top=stack[stack.length-1];if(top&&top.kind==='wechat')top.tab=tab;else stack.push({kind:'wechat',tab});renderView();}
 function openApp(el,app){
   let ox='50%',oy='50%';
-  if(el){
-    const rect=el.getBoundingClientRect();
-    ox=(rect.left+rect.width/2)+'px';
-    oy=(rect.top+rect.height/2)+'px';
-  }
+  if(el){const rect=el.getBoundingClientRect();ox=(rect.left+rect.width/2)+'px';oy=(rect.top+rect.height/2)+'px';}
   let targetId='';
   if(app==='wechat')targetId='app-wechat';
   else if(app==='vocab')targetId='sub-vocab';
@@ -115,10 +106,7 @@ function openApp(el,app){
   else if(app==='lore')targetId='sub-lore';
   else if(app==='memory')targetId='sub-memory';
   else if(app==='data')targetId='sub-data';
-  if(targetId){
-    const t=document.getElementById(targetId);
-    if(t)t.style.transformOrigin=ox+' '+oy;
-  }
+  if(targetId){const t=document.getElementById(targetId);if(t)t.style.transformOrigin=ox+' '+oy;}
   if(app==='wechat')navigate({kind:'wechat',tab:'wechat'});
   else if(app==='vocab')navigate({kind:'sub',id:'sub-vocab'});
   else if(app==='settings')navigate({kind:'sub',id:'sub-settings'});
@@ -133,39 +121,14 @@ document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',(
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');$('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());$('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());}
 tick();setInterval(tick,10000);
 function applyWallpaper(){
-  if(wallpaper==='custom'&&wpImgUrl){
-    $('homeWall').style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';
-    $('wallpaperName').textContent='自定义';
-  }else{
-    const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];
-    $('homeWall').style.background=wp.bg;
-    $('wallpaperName').textContent=wp.name;
-  }
+  if(wallpaper==='custom'&&wpImgUrl){$('homeWall').style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';$('wallpaperName').textContent='自定义';}
+  else{const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];$('homeWall').style.background=wp.bg;$('wallpaperName').textContent=wp.name;}
 }
 function renderWallpaper(){
   const box=$('wpGrid');box.innerHTML='';
-  WALLPAPERS.forEach(w=>{
-    const d=document.createElement('div');
-    d.className='wp-item'+(w.id===wallpaper?' sel':'');
-    d.style.background=w.bg;
-    d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;
-    d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};
-    box.appendChild(d);
-  });
-  if(wpImgUrl){
-    const d=document.createElement('div');
-    d.className='wp-item'+(wallpaper==='custom'?' sel':'');
-    d.style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';
-    d.innerHTML=`<div class="wp-label">自定义</div><div class="wp-check">✓</div>`;
-    d.onclick=()=>{wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到自定义壁纸')};
-    box.appendChild(d);
-  }
-  const up=document.createElement('div');
-  up.className='wp-item';
-  up.style.cssText='display:flex;align-items:center;justify-content:center;font-size:30px;border:2px dashed rgba(255,255,255,.25)';
-  up.innerHTML='<div style="text-align:center"><div>＋</div><div style="font-size:11px;color:var(--text2)">上传图片</div></div>';
-  up.onclick=()=>{$('fileWP').click()};
-  box.appendChild(up);
+  WALLPAPERS.forEach(w=>{const d=document.createElement('div');d.className='wp-item'+(w.id===wallpaper?' sel':'');d.style.background=w.bg;d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};box.appendChild(d);});
+  if(wpImgUrl){const d=document.createElement('div');d.className='wp-item'+(wallpaper==='custom'?' sel':'');d.style.background='#08080c url('+wpImgUrl+') center/cover no-repeat';d.innerHTML=`<div class="wp-label">自定义</div><div class="wp-check">✓</div>`;d.onclick=()=>{wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到自定义壁纸')};box.appendChild(d);}
+  const up=document.createElement('div');up.className='wp-item';up.style.cssText='display:flex;align-items:center;justify-content:center;font-size:30px;border:2px dashed rgba(255,255,255,.25)';up.innerHTML='<div style="text-align:center"><div>＋</div><div style="font-size:11px;color:var(--text2)">上传图片</div></div>';up.onclick=()=>{$('fileWP').click()};box.appendChild(up);
 }
 function allWords(){return BUILTIN_WORDS.concat(vocab.custom)}
 function checkNewDay(){const t=todayStr();if(vocab.lastDate!==t){vocab.lastDate=t;vocab.today=0;vocab.right=0;vocab.wrongCnt=0;save(LS.vocab,vocab)}}
@@ -176,7 +139,21 @@ function renderVocabStatsOnly(){$('vsToday').textContent=vocab.today;const total
 function renderWrongList(){const box=$('wrongList');box.innerHTML='';const keys=Object.keys(vocab.wrong);if(!keys.length){box.innerHTML='<div class="empty" style="padding:20px">暂无错词，加油</div>';return}keys.forEach(k=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="info"><div class="name">${esc(k)}</div><div class="last">${esc(vocab.wrong[k].m)} · 错 ${vocab.wrong[k].times} 次</div></div>`;box.appendChild(d);});}
 $('btnNext').onclick=()=>{newQuestion()};
 $('btnVocabAdd').onclick=()=>{openSheet(`<div class="field"><label>英文单词</label><input id="newWord" placeholder="如：serendipity"></div><div class="field"><label>中文释义</label><input id="newMeaning" placeholder="如：意外发现珍宝的运气"></div><button class="btn wx" id="btnWordOk">添加</button><button class="btn gray" id="btnWordCancel">取消</button>`);$('btnWordOk').onclick=()=>{const w=$('newWord').value.trim(),m=$('newMeaning').value.trim();if(!w||!m){toast('单词和释义都要填');return}if(allWords().some(x=>x.w===w)){toast('这个词已经在词库里了');return}vocab.custom.push({w,m});save(LS.vocab,vocab);closeSheet();toast('已添加');newQuestion();};$('btnWordCancel').onclick=closeSheet;};
-function renderChatList(){const box=$('chatList');box.innerHTML='';let items=chars.filter(c=>(chats[c.id]||[]).length).sort((a,b)=>{const la=chats[a.id]?.[chats[a.id].length-1]?.time||0;const lb=chats[b.id]?.[chats[b.id].length-1]?.time||0;return lb-la;});if(chatFilter)items=items.filter(c=>c.name.includes(chatFilter));if(!items.length){box.innerHTML=chatFilter?'<div class="empty">没有匹配的会话</div>':'<div class="empty">还没有会话<br>去「通讯录」添加角色开始聊天</div>';return;}items.forEach(c=>{const msgs=chats[c.id]||[],last=msgs[msgs.length-1];const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((last.role==='user'?(prota.name+'：'):'')+(last.type==='image'?'[图片]':last.content))}</div></div><div class="time">${fmtTime(last.time)}</div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});}
+function renderChatList(){
+  const box=$('chatList');box.innerHTML='';
+  let items=chars.filter(c=>(chats[c.id]||[]).length).sort((a,b)=>{const la=chats[a.id]?.[chats[a.id].length-1]?.time||0;const lb=chats[b.id]?.[chats[b.id].length-1]?.time||0;return lb-la;});
+  if(chatFilter)items=items.filter(c=>c.name.includes(chatFilter));
+  if(!items.length){
+    if(chatFilter){box.innerHTML='<div class="empty">没有匹配的会话</div>';}
+    else{
+      box.innerHTML='<div class="empty" style="padding:44px 20px"><div style="font-size:44px;margin-bottom:14px">💬</div><div style="font-size:15px;color:var(--text)">还没有聊天</div><div style="margin:10px 0 22px">加个角色，就能在这聊天了</div><button class="btn wx" id="btnChatEmptyAdd" style="max-width:220px;margin:0 auto">＋ 添加角色</button></div>';
+      const btn=box.querySelector('#btnChatEmptyAdd');
+      if(btn)btn.onclick=openAddCharSheet;
+    }
+    return;
+  }
+  items.forEach(c=>{const msgs=chats[c.id]||[],last=msgs[msgs.length-1];const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((last.role==='user'?(prota.name+'：'):'')+(last.type==='image'?'[图片]':last.content))}</div></div><div class="time">${fmtTime(last.time)}</div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});
+}
 function renderContacts(){const box=$('contactList');box.innerHTML='';let items=chars;if(contactFilter)items=items.filter(c=>c.name.includes(contactFilter));if(!items.length){box.innerHTML=contactFilter?'<div class="empty">没有匹配的联系人</div>':'<div class="empty">通讯录空空如也<br>点右上角「＋」添加角色</div>';return;}items.forEach(c=>{const d=document.createElement('div');d.className='c-item';d.innerHTML=`<div class="av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="last">${esc((c.desc||c.personality||'暂无简介')).slice(0,30)}</div></div>`;d.onclick=()=>{activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'})};box.appendChild(d);});}
 function renderMe(){$('meName').textContent=prota.name||'未设置';$('meAvatar').textContent=prota.name[0]||'我';$('walletPreview').textContent='¥'+wallet.balance.toFixed(2);const n=moments.length;const b=$('momentsBadge');if(n){b.style.display='flex';b.textContent=n}else b.style.display='none';}
 function scrollBottom(){const c=$('chatMsgList');c.scrollTop=c.scrollHeight}
@@ -230,23 +207,10 @@ function addChar(cd){if(!Array.isArray(chars))chars=[];const c={id:uid(),name:cd
 function openSheet(html){$('sheetContent').innerHTML=html;$('sheetMask').classList.add('show');$('sheet').classList.add('show');}
 function closeSheet(){$('sheetMask').classList.remove('show');$('sheet').classList.remove('show')}
 $('sheetMask').onclick=closeSheet;
-function openAddCharSheet(){openSheet(`<div class="field"><label>新建角色</label></div><div class="field"><label>角色名</label><input id="newCharName" placeholder="角色名字"></div><div class="field"><label>人设（可选）</label><textarea id="newCharDesc" placeholder="性格、背景、说话风格…"></textarea></div><button class="btn wx" id="btnNewCharOk">创建并聊天</button><div style="text-align:center;color:var(--text2);font-size:12px;margin:10px 0">—— 或者 ——</div><button class="btn gray" id="btnSheetImportPng">📥 导入 PNG 角色卡</button><button class="btn gray" id="btnSheetCancel">取消</button>`);$('btnNewCharOk').onclick=function(){try{const n=$('newCharName').value.trim();if(!n){toast('名字不能为空');return}const c=addChar({name:n,desc:$('newCharDesc').value.trim()});closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});toast('已创建：'+c.name);}catch(e){toast('创建失败：'+(e&&e.message?e.message:e))}};$('btnSheetImportPng').onclick=function(){closeSheet();$('filePNG').click()};$('btnSheetCancel').onclick=closeSheet;}
+function openAddCharSheet(){openSheet(`<div class="field"><label>名字</label><input id="newCharName" placeholder="角色叫什么"></div><div class="field"><label>性格 / 人设</label><textarea id="newCharPersonality" placeholder="ta 是什么性格，怎么说话…"></textarea></div><div class="field"><label>背景设定（可选）</label><textarea id="newCharDesc" placeholder="ta 的身份、背景故事…"></textarea></div><div class="field"><label>开场白（可选）</label><textarea id="newCharFirst" placeholder="填了的话，创建后 ta 会先发这句"></textarea></div><button class="btn wx" id="btnNewCharOk">创建并聊天</button><div style="text-align:center;color:var(--text2);font-size:12px;margin:10px 0">—— 或者 ——</div><button class="btn gray" id="btnSheetImportPng">📥 导入 PNG 角色卡</button><button class="btn gray" id="btnSheetCancel">取消</button>`);$('btnNewCharOk').onclick=function(){try{const n=$('newCharName').value.trim();if(!n){toast('名字不能为空');return}const c=addChar({name:n,personality:$('newCharPersonality').value.trim(),desc:$('newCharDesc').value.trim(),first_mes:$('newCharFirst').value.trim()});closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});toast('已创建：'+c.name);}catch(e){toast('创建失败：'+(e&&e.message?e.message:e))}};$('btnSheetImportPng').onclick=function(){closeSheet();$('filePNG').click()};$('btnSheetCancel').onclick=closeSheet;}
 $('btnAddChar').onclick=openAddCharSheet;
 $('filePNG').addEventListener('change',function(){const f=this.files[0];if(!f)return;f.arrayBuffer().then(buf=>{try{const c=addChar(normChara(parsePNG(buf)));navigate({kind:'wechat',tab:'contacts'});toast('已添加角色：'+c.name);}catch(e){toast('导入失败：'+e.message)}});this.value='';});
-$('fileWP').addEventListener('change',function(){
-  const f=this.files[0];if(!f)return;
-  if(f.size>4*1024*1024){toast('图片太大，选 4MB 以内的');this.value='';return}
-  const reader=new FileReader();
-  reader.onload=()=>{
-    wpImgUrl=reader.result;
-    try{localStorage.setItem(LS.wpimg,wpImgUrl);}catch(e){}
-    wallpaper='custom';save(LS.wallpaper,wallpaper);
-    applyWallpaper();renderWallpaper();
-    toast('壁纸已设置');
-  };
-  reader.readAsDataURL(f);
-  this.value='';
-});
+$('fileWP').addEventListener('change',function(){const f=this.files[0];if(!f)return;if(f.size>4*1024*1024){toast('图片太大，选 4MB 以内的');this.value='';return}const reader=new FileReader();reader.onload=()=>{wpImgUrl=reader.result;try{localStorage.setItem(LS.wpimg,wpImgUrl);}catch(e){}wallpaper='custom';save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('壁纸已设置');};reader.readAsDataURL(f);this.value='';});
 $('btnChatMore').onclick=()=>{openSheet(`<div class="menu-item" id="mRegenAll" style="border:none;border-radius:10px;margin-bottom:6px">🔄 重新生成最后回复</div><div class="menu-item" id="mClear" style="border:none;border-radius:10px;color:var(--red)">🗑 清空聊天记录</div><button class="btn gray" id="mMoreCancel" style="margin-top:10px">取消</button>`);$('mRegenAll').onclick=()=>{closeSheet();const msgs=chats[activeCharId]||[];let li=-1;for(let i=msgs.length-1;i>=0;i--){if(msgs[i].role==='assistant'){li=i;break}}if(li<0){toast('没有可重新生成的回复');return}regenAt(li)};$('mClear').onclick=()=>{if(!confirm('清空当前角色聊天记录？'))return;chats[activeCharId]=[];save(LS.chats,chats);closeSheet();renderChat();toast('已清空')};$('mMoreCancel').onclick=closeSheet;};
 $('searchChat').addEventListener('input',e=>{chatFilter=e.target.value.trim();renderChatList()});
 $('searchContact').addEventListener('input',e=>{contactFilter=e.target.value.trim();renderContacts()});
