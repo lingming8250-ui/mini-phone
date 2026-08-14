@@ -17,10 +17,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .home-time{font-size:52px;font-weight:700;text-align:center;margin:12px 0 40px;color:#fff;letter-spacing:.5px;text-shadow:0 2px 20px rgba(0,0,0,.55)}
 .app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px 10px;justify-items:center}
 .app-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
-.app-icon{width:60px;height:60px;border-radius:21px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 6px rgba(0,0,0,.22),0 12px 28px rgba(0,0,0,.5)}
+.app-icon{width:60px;height:60px;border-radius:21px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -2px 8px rgba(0,0,0,.2),0 12px 28px rgba(0,0,0,.4)}
 .app-icon::before{content:"";position:absolute;z-index:1;top:-38%;left:-14%;width:128%;height:66%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 60%);pointer-events:none}
 .app-icon::after{content:"";position:absolute;z-index:1;bottom:-10%;left:16%;right:16%;height:32%;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.2),transparent 70%);pointer-events:none}
-.app-glyph{width:27px;height:27px;position:relative;z-index:2;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.app-glyph{width:27px;height:27px;position:relative;z-index:2;fill:none;stroke:#111;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(255,255,255,.45))}
 .app-name{font-size:11.5px;color:#ececf2;text-align:center;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.75)}
 .dock{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:14px 18px calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:22px;background:rgba(255,255,255,.06);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border-top:1px solid rgba(255,255,255,.12);z-index:20}
 .dock .app-icon{width:56px;height:56px;border-radius:19px}
