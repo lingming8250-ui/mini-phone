@@ -116,7 +116,7 @@ function launchApp(el,app){
   if(glyph){overlay.appendChild(glyph.cloneNode(true));}
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>requestAnimationFrame(()=>overlay.classList.add('zoom')));
-  setTimeout(()=>{overlay.remove();openApp(app);},300);
+  setTimeout(()=>{overlay.remove();openApp(app);},180);
 }
 document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click',back));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
