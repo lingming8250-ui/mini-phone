@@ -5,22 +5,32 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
 html,body{height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;max-width:480px;margin:0 auto}
-.statusbar{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:100;display:flex;justify-content:space-between;align-items:center;padding:6px 18px 0;font-size:13px;font-weight:600;height:28px;width:100%;max-width:480px;pointer-events:none;color:var(--text)}
-.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.switch,.like-btn,.v-opt,.plus{transition:transform .08s,opacity .08s}
-.app-icon:active,.c-item:active,.menu-item:active,.cell:active,.tab:active,.btn:active,.back:active,.nav-btn:active,.model-item:active,.send:active,.add-fab:active,.like-btn:active,.v-opt:active,.plus:active{transform:scale(.96);opacity:.8}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;max-width:480px;margin:0 auto;font-weight:400}
+.statusbar{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:100;display:flex;justify-content:space-between;align-items:center;padding:8px 22px 0;font-size:14px;font-weight:600;height:30px;width:100%;max-width:480px;pointer-events:none;color:var(--text)}
+.statusbar .status-right{display:flex;align-items:center;gap:5px}
+.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.switch,.like-btn,.v-opt,.plus{transition:transform .15s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+.app-icon:active,.c-item:active,.menu-item:active,.cell:active,.tab:active,.btn:active,.back:active,.nav-btn:active,.model-item:active,.send:active,.add-fab:active,.like-btn:active,.v-opt:active,.plus:active{transform:scale(.92);opacity:.85}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);padding-top:28px}
 .screen.active{display:flex}
 #home{background:#08080c}
-.home-wall{flex:1;overflow-y:auto;padding:34px 20px 60px;position:relative;background:radial-gradient(ellipse at 18% 12%,rgba(94,60,255,.4),transparent 48%),radial-gradient(ellipse at 82% 28%,rgba(0,140,255,.34),transparent 50%),radial-gradient(ellipse at 55% 95%,rgba(255,80,150,.30),transparent 52%),radial-gradient(ellipse at 30% 70%,rgba(48,209,88,.18),transparent 46%),#08080c}
-.home-time{font-size:46px;font-weight:700;text-align:center;margin:10px 0 38px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.5)}
-.app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 14px;justify-items:center}
-.app-icon{width:62px;height:62px;border-radius:19px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:27px;backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 2px rgba(255,255,255,.42),inset 0 -2px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.5)}
-.app-icon::before{content:"";position:absolute;z-index:1;top:-42%;left:-16%;width:132%;height:72%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.55),rgba(255,255,255,0) 62%);pointer-events:none}
-.app-icon::after{content:"";position:absolute;z-index:1;bottom:-12%;left:14%;right:14%;height:38%;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.24),transparent 70%);pointer-events:none}
-.app-icon .ico{position:relative;z-index:2;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
-.app-name{font-size:12px;color:#f0f0f5;margin-top:7px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.7)}
-#app-wechat .page-head{padding:12px 16px;font-size:20px;font-weight:800;background:rgba(16,16,22,.7);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
+.home-wall{flex:1;overflow-y:auto;padding:36px 22px 110px;position:relative;background:radial-gradient(ellipse at 20% 14%,rgba(94,60,255,.34),transparent 48%),radial-gradient(ellipse at 85% 30%,rgba(0,140,255,.28),transparent 50%),radial-gradient(ellipse at 55% 95%,rgba(255,80,150,.24),transparent 52%),#08080c}
+.home-time{font-size:52px;font-weight:700;text-align:center;margin:12px 0 40px;color:#fff;letter-spacing:.5px;text-shadow:0 2px 20px rgba(0,0,0,.55)}
+.app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px 10px;justify-items:center}
+.app-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
+.app-icon{
+  width:60px;height:60px;border-radius:21px;position:relative;overflow:hidden;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 6px rgba(0,0,0,.22),0 12px 28px rgba(0,0,0,.5);
+}
+.app-icon::before{content:"";position:absolute;z-index:1;top:-38%;left:-14%;width:128%;height:66%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 60%);pointer-events:none}
+.app-icon::after{content:"";position:absolute;z-index:1;bottom:-10%;left:16%;right:16%;height:32%;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.2),transparent 70%);pointer-events:none}
+.app-glyph{width:28px;height:28px;position:relative;z-index:2;fill:#fff;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.app-name{font-size:11.5px;color:#ececf2;text-align:center;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.75)}
+.dock{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:14px 18px calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:22px;background:rgba(255,255,255,.06);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border-top:1px solid rgba(255,255,255,.12);z-index:20}
+.dock .app-icon{width:56px;height:56px;border-radius:19px}
+.dock .app-glyph{width:26px;height:26px}
+#app-wechat .page-head{padding:12px 16px;font-size:20px;font-weight:700;background:rgba(16,16,22,.7);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
 #app-wechat .ph-btn{background:none;border:none;color:var(--blue);font-size:22px;cursor:pointer;font-weight:600;padding:2px 6px}
 .tab-page{position:absolute;top:28px;bottom:56px;left:0;right:0;display:none;flex-direction:column;overflow:hidden}
 .tab-page.active{display:flex}
