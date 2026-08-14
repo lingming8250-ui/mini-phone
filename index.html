@@ -24,7 +24,7 @@
 </div>
 
 <div id="home" class="screen active">
-  <div class="home-wall">
+  <div class="home-wall" id="homeWall">
     <div class="home-time" id="homeTime">00:00</div>
     <div class="app-grid">
       <div class="app-cell">
@@ -180,12 +180,43 @@
     <div class="group"><div class="cell"><span class="label">流式输出</span><div class="switch on" id="setStream"></div></div></div>
     <div class="group-title">系统提示词模板（{name}替换角色名）</div>
     <div class="group"><div class="cell" style="flex-direction:column;align-items:stretch"><textarea class="cell-edit" id="setSysPrompt" style="min-height:90px"></textarea></div></div>
+    <div class="group-title">个性化</div>
+    <div class="group">
+      <div class="cell" id="cellWallpaper"><span class="label">壁纸</span><span class="value" id="wallpaperName">极光</span><span class="chev">›</span></div>
+    </div>
+    <div class="group-title">关于</div>
+    <div class="group">
+      <div class="cell" id="cellAbout"><span class="label">关于本机</span><span class="value">LingOS 1.0</span><span class="chev">›</span></div>
+    </div>
   </div>
 </div>
 
 <div id="sub-models" class="sub">
   <div class="navbar"><button class="back" data-hide>‹</button><div class="title">选择模型</div><button class="nav-btn" id="btnRefreshModels">刷新</button></div>
   <div class="sub-body" id="modelList"></div>
+</div>
+
+<div id="sub-wallpaper" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">壁纸</div></div>
+  <div class="sub-body">
+    <div class="wp-grid" id="wpGrid"></div>
+  </div>
+</div>
+
+<div id="sub-about" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">关于本机</div></div>
+  <div class="sub-body" style="text-align:center">
+    <div class="about-logo">📱</div>
+    <div class="about-name">LingOS</div>
+    <div class="about-ver">版本 1.0.0</div>
+    <div class="group" style="text-align:left;margin-top:20px">
+      <div class="cell"><span class="label">设备名称</span><span class="value">Mini Phone</span></div>
+      <div class="cell"><span class="label">系统版本</span><span class="value">LingOS 1.0</span></div>
+      <div class="cell"><span class="label">AI 引擎</span><span class="value">DeepSeek</span></div>
+      <div class="cell"><span class="label">存储方式</span><span class="value">本地浏览器</span></div>
+    </div>
+    <div style="color:var(--text2);font-size:12px;margin-top:16px">由 AI 驱动的小手机系统</div>
+  </div>
 </div>
 
 <div id="sub-lore" class="sub">

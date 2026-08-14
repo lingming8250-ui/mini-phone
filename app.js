@@ -13,7 +13,7 @@ function load(k,d){
   if(raw===null||raw===undefined)return d;
   try{return JSON.parse(raw)}catch(e){return d}
 }
-const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',prota:'mt3_prota',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab'};
+const LS={s:'mt3_s',chars:'mt3_chars',chats:'mt3_chats',prota:'mt3_prota',wallet:'mt3_wallet',moments:'mt3_moments',w:'mt3_w',mem:'mt3_mem',vocab:'mt3_vocab',wallpaper:'mt3_wallpaper'};
 const DEFAULT_SYS='你正在扮演角色「{name}」。严格贴合人设对话，自然生活化，模仿真人语气，口语化表达。禁止出现"作为AI""作为语言模型""很高兴为您服务"等AI话术痕迹。不要解释设定，直接进入角色，回复长度适中。';
 const dset={baseurl:'',apiKey:'',model:'',temperature:0.9,topP:1,maxTokens:1024,stream:true,sys:DEFAULT_SYS};
 let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dset,...st};
@@ -32,6 +32,16 @@ if(typeof vocab.today!=='number')vocab.today=0;
 if(typeof vocab.right!=='number')vocab.right=0;
 if(typeof vocab.wrongCnt!=='number')vocab.wrongCnt=0;
 if(typeof vocab.lastDate!=='string')vocab.lastDate='';
+const WALLPAPERS=[
+{id:'aurora',name:'极光',bg:'radial-gradient(ellipse at 20% 14%, rgba(94,60,255,.34), transparent 48%), radial-gradient(ellipse at 85% 30%, rgba(0,140,255,.28), transparent 50%), radial-gradient(ellipse at 55% 95%, rgba(255,80,150,.24), transparent 52%), #08080c'},
+{id:'ocean',name:'深海',bg:'radial-gradient(ellipse at 30% 20%, rgba(0,80,200,.4), transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(0,200,180,.3), transparent 50%), #04060c'},
+{id:'forest',name:'森林',bg:'radial-gradient(ellipse at 25% 15%, rgba(40,180,120,.35), transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(120,200,60,.22), transparent 50%), #050a06'},
+{id:'gold',name:'暗金',bg:'radial-gradient(ellipse at 30% 20%, rgba(220,170,60,.3), transparent 50%), radial-gradient(ellipse at 75% 75%, rgba(140,90,30,.3), transparent 52%), #0a0805'},
+{id:'sunset',name:'日落',bg:'radial-gradient(ellipse at 20% 20%, rgba(255,120,60,.35), transparent 50%), radial-gradient(ellipse at 80% 75%, rgba(200,50,90,.32), transparent 52%), #0c0508'},
+{id:'night',name:'星夜',bg:'radial-gradient(ellipse at 30% 25%, rgba(80,90,200,.3), transparent 50%), radial-gradient(ellipse at 75% 70%, rgba(20,40,90,.35), transparent 52%), #02030a'}
+];
+let wallpaper=load(LS.wallpaper,'aurora');
+if(!WALLPAPERS.some(w=>w.id===wallpaper))wallpaper='aurora';
 const BUILTIN_WORDS=[
 {w:'abandon',m:'放弃'},{w:'absorb',m:'吸收'},{w:'abundant',m:'丰富的'},{w:'access',m:'进入；通道'},{w:'accompany',m:'陪伴'},
 {w:'accomplish',m:'完成'},{w:'accurate',m:'准确的'},{w:'achieve',m:'实现'},{w:'acquire',m:'获得'},{w:'adapt',m:'适应'},
@@ -94,6 +104,7 @@ function renderView(){
     else if(v.id==='sub-prota'){$('protaName').value=prota.name;$('protaDesc').value=prota.desc}
     else if(v.id==='sub-settings')fillSetForm();
     else if(v.id==='sub-models')loadModels();
+    else if(v.id==='sub-wallpaper')renderWallpaper();
     else if(v.id==='sub-lore')renderLore();
     else if(v.id==='sub-memory')renderMem();
   }
@@ -124,6 +135,24 @@ function tick(){
   $('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());
 }
 tick();setInterval(tick,10000);
+
+/* ===== 壁纸 ===== */
+function applyWallpaper(){
+  const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];
+  $('homeWall').style.background=wp.bg;
+  $('wallpaperName').textContent=wp.name;
+}
+function renderWallpaper(){
+  const box=$('wpGrid');box.innerHTML='';
+  WALLPAPERS.forEach(w=>{
+    const d=document.createElement('div');
+    d.className='wp-item'+(w.id===wallpaper?' sel':'');
+    d.style.background=w.bg;
+    d.innerHTML=`<div class="wp-label">${esc(w.name)}</div><div class="wp-check">✓</div>`;
+    d.onclick=()=>{wallpaper=w.id;save(LS.wallpaper,wallpaper);applyWallpaper();renderWallpaper();toast('已切换到 '+w.name)};
+    box.appendChild(d);
+  });
+}
 
 /* ===== 背单词 ===== */
 function allWords(){return BUILTIN_WORDS.concat(vocab.custom)}
@@ -418,7 +447,7 @@ async function callAPI(list,onDelta){
   return j.choices?.[0]?.message?.content||'';
 }
 
-/* ===== 表情包 + 批量发送（＋ 按钮） ===== */
+/* ===== 表情包 + 批量发送 ===== */
 $('btnPlus').onclick=()=>{
   openSheet(`
     <div class="menu-item" id="mImg" style="border:none;border-radius:12px;margin-bottom:8px">🖼 发表情包（图片URL）</div>
@@ -526,6 +555,8 @@ $('miWallet').onclick=()=>navigate({kind:'sub',id:'sub-wallet'});
 $('miProta').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
 $('cellModel').onclick=()=>navigate({kind:'sub',id:'sub-models'});
 $('meProfile').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
+$('cellWallpaper').onclick=()=>navigate({kind:'sub',id:'sub-wallpaper'});
+$('cellAbout').onclick=()=>navigate({kind:'sub',id:'sub-about'});
 $('btnSaveProta').onclick=()=>{
   const n=$('protaName').value.trim();
   if(!n){toast('名字不能为空');return}
@@ -543,6 +574,7 @@ function fillSetForm(){
   $('setMaxTokens').value=st.maxTokens;
   $('setStream').classList.toggle('on',st.stream);
   $('setSysPrompt').value=st.sys;
+  $('wallpaperName').textContent=(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;
 }
 function saveSet(){
   st.baseurl=$('setBaseurl').value.trim();
@@ -697,7 +729,7 @@ $('btnChatMore').onclick=()=>{
 $('searchChat').addEventListener('input',e=>{chatFilter=e.target.value.trim();renderChatList()});
 $('searchContact').addEventListener('input',e=>{contactFilter=e.target.value.trim();renderContacts()});
 $('btnExport').onclick=()=>{
-  const data={st,chars,chats,prota,wallet,moments,lore,mem,vocab,t:new Date().toISOString()};
+  const data={st,chars,chats,prota,wallet,moments,lore,mem,vocab,wallpaper,t:new Date().toISOString()};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='小手机备份.json';a.click();URL.revokeObjectURL(a.href);toast('已导出');
@@ -717,6 +749,8 @@ $('fileImport').addEventListener('change',function(){
     if(d.lore){lore=d.lore;save(LS.w,lore)}
     if(d.mem){mem=d.mem;save(LS.mem,mem)}
     if(d.vocab){vocab=d.vocab;save(LS.vocab,vocab)}
+    if(d.wallpaper){wallpaper=d.wallpaper;save(LS.wallpaper,wallpaper)}
+    applyWallpaper();
     renderChatList();renderContacts();renderMe();renderWallet();
     toast('导入成功');
   }catch(e){toast('导入失败：'+e.message)}};
@@ -736,5 +770,6 @@ $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/And
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
+applyWallpaper();
 renderChatList();renderContacts();renderMe();renderWallet();
 renderView();
