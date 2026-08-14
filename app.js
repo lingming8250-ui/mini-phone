@@ -94,7 +94,13 @@ function navigate(v){stack.push(v);renderView();if(v.kind==='sub'&&v.id==='sub-c
 function back(){if(stack.length>1){stack.pop();renderView()}}
 function goHome(){stack=[{kind:'home'}];renderView()}
 function switchTab(tab){const top=stack[stack.length-1];if(top&&top.kind==='wechat')top.tab=tab;else stack.push({kind:'wechat',tab});renderView();}
-function openApp(app){
+function openApp(el,app){
+  if(el){
+    const rect=el.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    document.documentElement.style.setProperty('--appOrigin', cx+'px '+cy+'px');
+  }
   if(app==='wechat')navigate({kind:'wechat',tab:'wechat'});
   else if(app==='vocab')navigate({kind:'sub',id:'sub-vocab'});
   else if(app==='settings')navigate({kind:'sub',id:'sub-settings'});
@@ -105,7 +111,7 @@ function openApp(app){
 document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click',back));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
-document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el.dataset.app)));
+document.querySelectorAll('.app-icon').forEach(el=>el.addEventListener('click',()=>openApp(el,el.dataset.app)));
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');$('sbTime').textContent=p(d.getHours())+':'+p(d.getMinutes());$('homeTime').textContent=p(d.getHours())+':'+p(d.getMinutes());}
 tick();setInterval(tick,10000);
 function applyWallpaper(){const wp=WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0];$('homeWall').style.background=wp.bg;$('wallpaperName').textContent=wp.name;}
