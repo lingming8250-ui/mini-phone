@@ -95,11 +95,22 @@ function back(){if(stack.length>1){stack.pop();renderView()}}
 function goHome(){stack=[{kind:'home'}];renderView()}
 function switchTab(tab){const top=stack[stack.length-1];if(top&&top.kind==='wechat')top.tab=tab;else stack.push({kind:'wechat',tab});renderView();}
 function openApp(el,app){
+  let ox='50%',oy='50%';
   if(el){
     const rect=el.getBoundingClientRect();
-    const cx=rect.left+rect.width/2;
-    const cy=rect.top+rect.height/2;
-    document.documentElement.style.setProperty('--appOrigin', cx+'px '+cy+'px');
+    ox=(rect.left+rect.width/2)+'px';
+    oy=(rect.top+rect.height/2)+'px';
+  }
+  let targetId='';
+  if(app==='wechat')targetId='app-wechat';
+  else if(app==='vocab')targetId='sub-vocab';
+  else if(app==='settings')targetId='sub-settings';
+  else if(app==='lore')targetId='sub-lore';
+  else if(app==='memory')targetId='sub-memory';
+  else if(app==='data')targetId='sub-data';
+  if(targetId){
+    const t=document.getElementById(targetId);
+    if(t)t.style.transformOrigin=ox+' '+oy;
   }
   if(app==='wechat')navigate({kind:'wechat',tab:'wechat'});
   else if(app==='vocab')navigate({kind:'sub',id:'sub-vocab'});
