@@ -10,7 +10,7 @@ let st=load(LS.s,{...dset});if(!st||typeof st!=='object')st={...dset};st={...dse
 let chars=load(LS.chars,[]);if(!Array.isArray(chars))chars=[];
 let chats=load(LS.chats,{});if(!chats||typeof chats!=='object'||Array.isArray(chats))chats={};
 let protas=load(LS.protas,null);
-if(!Array.isArray(protas)||!protas.length){const old=load('mt3_prota',{name:'我',desc:''});protas=[{id:'p1',name:(old&&old.name)||'我',desc:(old&&old.desc)||''];};
+if(!Array.isArray(protas)||!protas.length){const old=load('mt3_prota',{name:'我',desc:''});protas=[{id:'p1',name:(old&&old.name)||'我',desc:(old&&old.desc)||''}];}
 let protaId=load(LS.protaId,protas[0].id);
 function getProta(){return protas.find(p=>p.id===protaId)||protas[0];}
 let wallet=load(LS.wallet,{balance:0,bills:[]});if(!wallet||typeof wallet!=='object')wallet={balance:0,bills:[]};if(!Array.isArray(wallet.bills))wallet.bills=[];if(typeof wallet.balance!=='number')wallet.balance=0;
