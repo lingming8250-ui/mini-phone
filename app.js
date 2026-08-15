@@ -82,14 +82,14 @@ function getChar(id){return chars.find(c=>c.id===id)||null}
 function fmtTime(ts){if(!ts)return '';const d=new Date(ts),now=new Date(),p=n=>String(n).padStart(2,'0');if(d.toDateString()===now.toDateString())return p(d.getHours())+':'+p(d.getMinutes());if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'/'+d.getDate();return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
 function todayStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function extractContent(j){if(!j)return '';const ch=j.choices||[];const m=(ch[0]&&(ch[0].message||ch[0].text))||(j.output&&j.output[0])||null;if(!m)return '';const c=m.content!==undefined?m.content:m.text;if(typeof c==='string')return c;if(Array.isArray(c)){let out='';c.forEach(p=>{if(p==null)return;if(typeof p==='string')out+=p;else if(typeof p.text==='string')out+=p.text;else if(typeof p.content==='string')out+=p.content;});return out;}return '';}
+function extractContent(j){if(!j)return '';if(j.candidates&&j.candidates[0]){const cand=j.candidates[0];const c=cand.content;if(c&&Array.isArray(c.parts)){let out='';c.parts.forEach(p=>{if(p==null)return;if(typeof p.text==='string')out+=p.text;});if(out)return out;}if(typeof c==='string')return c;}const ch=j.choices||[];const m=(ch[0]&&(ch[0].message||ch[0].text))||(j.output&&j.output[0])||null;if(!m)return '';const c=m.content!==undefined?m.content:m.text;if(typeof c==='string')return c;if(Array.isArray(c)){let out='';c.forEach(p=>{if(p==null)return;if(typeof p==='string')out+=p;else if(typeof p.text==='string')out+=p.text;else if(typeof p.content==='string')out+=p.content;});return out;}return '';}
 document.addEventListener('click',function(e){const t=e.target.closest('.app-icon,.c-item,.menu-item,.cell,.tab,.btn,.back,.nav-btn,.model-item,.send,.add-fab,.like-btn,.switch,.v-opt,.plus,.prota-chip,.wp-tab');if(t&&navigator.vibrate){try{navigator.vibrate(8)}catch(err){}}});
 let stack=[{kind:'home'}];
 function getViewEl(v){if(v.kind==='wechat')return $('app-wechat');if(v.kind==='sub')return $(v.id);return null;}
 function renderView(){
   const v=stack[stack.length-1];
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','zoom-in','slide-in','slide-out'));
-  document.querySelectorAll('.sub').forEach(s=>s.classList.remove('active','slide-in','slide-out'));
+  document.querySelectorAll('.sub').forEach(s=>s.classList.remove('active','slide-in','slide-in-left','slide-out'));
   $('tabbar').style.display='none';
   if(v.kind==='home')$('home').classList.add('active');
   else if(v.kind==='wechat'){
@@ -103,7 +103,7 @@ function renderView(){
     if(v.tab==='contacts')renderContacts();
     if(v.tab==='me')renderMe();
   }else if(v.kind==='sub'){
-    const el=$(v.id);if(el){el.classList.add('active');el.classList.add('slide-in');}
+    const el=$(v.id);if(el){el.classList.add('active');el.classList.add(navAnim==='push'?'slide-in':'slide-in-left');}
     if(v.id==='sub-chat')renderChat();
     else if(v.id==='sub-chat-info')renderChatInfo();
     else if(v.id==='sub-vocab')renderVocab();
@@ -119,28 +119,8 @@ function renderView(){
   }
 }
 function navigate(v){navAnim='push';stack.push(v);renderView();if(v.kind==='sub'&&v.id==='sub-chat'){setTimeout(()=>{try{$('input').focus()}catch(e){}},120)}}
-function back(){
-  if(navLock)return;
-  if(stack.length<=1)return;
-  const cur=stack[stack.length-1];
-  const el=getViewEl(cur);
-  if(el&&el.classList.contains('active')){
-    navLock=true;
-    el.classList.add('slide-out');
-    setTimeout(()=>{stack.pop();navAnim='pop';renderView();navLock=false;},270);
-  }else{stack.pop();navAnim='pop';renderView();}
-}
-function goHome(){
-  if(navLock)return;
-  const cur=stack[stack.length-1];
-  if(!cur||cur.kind==='home')return;
-  const el=getViewEl(cur);
-  if(el&&el.classList.contains('active')){
-    navLock=true;
-    el.classList.add('slide-out');
-    setTimeout(()=>{stack=[{kind:'home'}];navAnim='pop';renderView();navLock=false;},270);
-  }else{stack=[{kind:'home'}];navAnim='pop';renderView();}
-}
+function back(){if(stack.length<=1)return;stack.pop();navAnim='pop';renderView();}
+function goHome(){stack=[{kind:'home'}];navAnim='pop';renderView();}
 function switchTab(tab){const top=stack[stack.length-1];if(top&&top.kind==='wechat')top.tab=tab;else{navAnim='push';stack.push({kind:'wechat',tab});}renderView();}
 function openApp(el,app){
   let ox='50%',oy='50%';
