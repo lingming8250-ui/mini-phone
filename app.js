@@ -247,7 +247,7 @@ $('input').addEventListener('input',function(){this.style.height='auto';this.sty
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
 function initLock(){const ls=$('lockScreen');if(!ls)return;let sy=0;ls.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});ls.addEventListener('touchend',e=>{if(sy-e.changedTouches[0].clientY>40)unlock();},{passive:true});ls.addEventListener('click',e=>{if(e.target.closest('.ls-btn'))return;unlock();});}
 function unlock(){const ls=$('lockScreen');if(!ls)return;if(!ls.classList.contains('show'))return;ls.classList.remove('show');ls.classList.add('hide');}
-function initLockMusic(){try{const raw=localStorage.getItem('lastSong');if(raw){const o=JSON.parse(raw);if(o&&o.name){const el=$('lsMusic');if(el){el.style.display='flex';$('lsMusicTitle').textContent=o.name;$('lsMusicStatus').textContent=o.playing?'正在播放':'已暂停';}}}}catch(e){}}
+function initLockMusic(){try{const raw=localStorage.getItem('lastSong');if(raw){const o=JSON.parse(raw);if(o&&o.name){const st=o.playing?'正在播放':'已暂停';const ls=$('lsMusic'),np=$('npMusic');if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=o.name;$('lsMusicStatus').textContent=st;}if(np){np.style.display='flex';$('npMusicTitle').textContent=o.name;$('npMusicStatus').textContent=st;}}}}catch(e){}}
 $('lsFlash').onclick=(e)=>{e.stopPropagation();const ls=$('lockScreen');if(!ls)return;let mask=document.getElementById('flashMask');if(!mask){mask=document.createElement('div');mask.id='flashMask';ls.appendChild(mask);}mask.classList.add('on');setTimeout(()=>mask.classList.remove('on'),1500);};
 $('lsCam').onclick=(e)=>{e.stopPropagation();toast('相机占位');};
 function initNotif(){let sy=0,sx=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-sy;const dx=e.changedTouches[0].clientX-sx;if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();},{passive:true});const np=$('notifPanel');if(np){let npy=0;np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});}}
@@ -314,9 +314,16 @@ async function playSong(s){
   audioEl.play().catch(()=>{});
 }
 function updateLockMusic(){
-  const el=$('lsMusic');if(!el)return;
   const s=curSong;
-  if(s){el.style.display='flex';$('lsMusicTitle').textContent=s.name;$('lsMusicStatus').textContent=(audioEl&&!audioEl.paused)?'正在播放':'已暂停';}
+  const st=(audioEl&&!audioEl.paused)?'正在播放':'已暂停';
+  const ls=$('lsMusic'),np=$('npMusic');
+  if(s){
+    if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=s.name;$('lsMusicStatus').textContent=st;}
+    if(np){np.style.display='flex';$('npMusicTitle').textContent=s.name;$('npMusicStatus').textContent=st;}
+  }else{
+    if(ls)ls.style.display='none';
+    if(np)np.style.display='none';
+  }
 }
 function onMeta(){const d=audioEl.duration;if(isFinite(d)){$('pDur').textContent=fmtDur(d);$('pSeek').max=Math.floor(d);}}
 function onTimeUpdate(){const t=audioEl.currentTime;$('pCur').textContent=fmtDur(t);$('pSeek').value=Math.floor(t);updateLrc(t);}
