@@ -28,8 +28,12 @@
     <div class="ls-date" id="lsDate">-</div>
     <div class="ls-time" id="lsTime">00:00</div>
     <div class="ls-music" id="lsMusic" style="display:none">
-      <div class="lsm-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-      <div class="lsm-info"><div class="lsm-status" id="lsMusicStatus">正在播放</div><div class="lsm-title" id="lsMusicTitle">-</div></div>
+      <div class="lsm-top">
+        <svg class="lsm-note" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span class="lsm-status" id="lsMusicStatus">正在播放</span>
+      </div>
+      <div class="lsm-title" id="lsMusicTitle">-</div>
+      <div class="lsm-bar"><div class="lsm-fill" id="lsMusicFill"></div></div>
     </div>
   </div>
   <div class="ls-bottom">
@@ -45,8 +49,12 @@
     <div class="np-time" id="npTime">00:00</div>
   </div>
   <div class="np-music" id="npMusic" style="display:none">
-    <div class="lsm-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-    <div class="lsm-info"><div class="lsm-status" id="npMusicStatus">正在播放</div><div class="lsm-title" id="npMusicTitle">-</div></div>
+    <div class="lsm-top">
+      <svg class="lsm-note" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      <span class="lsm-status" id="npMusicStatus">正在播放</span>
+    </div>
+    <div class="lsm-title" id="npMusicTitle">-</div>
+    <div class="lsm-bar"><div class="lsm-fill" id="npMusicFill"></div></div>
   </div>
   <button class="np-close" id="btnCloseNotifs"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   <div class="np-title">通知中心</div>

@@ -247,7 +247,7 @@ $('input').addEventListener('input',function(){this.style.height='auto';this.sty
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
 function initLock(){const ls=$('lockScreen');if(!ls)return;let sy=0;ls.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});ls.addEventListener('touchend',e=>{if(sy-e.changedTouches[0].clientY>40)unlock();},{passive:true});ls.addEventListener('click',e=>{if(e.target.closest('.ls-btn'))return;unlock();});}
 function unlock(){const ls=$('lockScreen');if(!ls)return;if(!ls.classList.contains('show'))return;ls.classList.remove('show');ls.classList.add('hide');}
-function initLockMusic(){try{const raw=localStorage.getItem('lastSong');if(raw){const o=JSON.parse(raw);if(o&&o.name){const st=o.playing?'正在播放':'已暂停';const ls=$('lsMusic'),np=$('npMusic');if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=o.name;$('lsMusicStatus').textContent=st;}if(np){np.style.display='flex';$('npMusicTitle').textContent=o.name;$('npMusicStatus').textContent=st;}}}}catch(e){}}
+function initLockMusic(){try{const raw=localStorage.getItem('lastSong');if(raw){const o=JSON.parse(raw);if(o&&o.name){const st=o.playing?'正在播放':'已暂停';const title=o.name+(o.artist&&o.artist!=='未知歌手'?' - '+o.artist:'');const ls=$('lsMusic'),np=$('npMusic');if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=title;$('lsMusicStatus').textContent=st;}if(np){np.style.display='flex';$('npMusicTitle').textContent=title;$('npMusicStatus').textContent=st;}}}}catch(e){}}
 $('lsFlash').onclick=(e)=>{e.stopPropagation();const ls=$('lockScreen');if(!ls)return;let mask=document.getElementById('flashMask');if(!mask){mask=document.createElement('div');mask.id='flashMask';ls.appendChild(mask);}mask.classList.add('on');setTimeout(()=>mask.classList.remove('on'),1500);};
 $('lsCam').onclick=(e)=>{e.stopPropagation();toast('相机占位');};
 function initNotif(){let sy=0,sx=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;sx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-sy;const dx=e.changedTouches[0].clientX-sx;if(sy<50&&dy>60&&Math.abs(dx)<40)openNotif();},{passive:true});const np=$('notifPanel');if(np){let npy=0;np.addEventListener('touchstart',e=>{npy=e.touches[0].clientY;},{passive:true});np.addEventListener('touchend',e=>{if(npy-e.changedTouches[0].clientY>40)closeNotif();},{passive:true});}}
@@ -309,7 +309,7 @@ async function playSong(s){
   renderPlayer(s);
   navigate({kind:'sub',id:'sub-player'});
   const d=$('disc');if(d)d.classList.add('spin');
-  try{localStorage.setItem('lastSong',JSON.stringify({name:s.name,playing:true}));}catch(e){}
+  try{localStorage.setItem('lastSong',JSON.stringify({name:s.name,artist:s.artist,playing:true}));}catch(e){}
   updateLockMusic();
   audioEl.play().catch(()=>{});
 }
@@ -318,15 +318,24 @@ function updateLockMusic(){
   const st=(audioEl&&!audioEl.paused)?'正在播放':'已暂停';
   const ls=$('lsMusic'),np=$('npMusic');
   if(s){
-    if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=s.name;$('lsMusicStatus').textContent=st;}
-    if(np){np.style.display='flex';$('npMusicTitle').textContent=s.name;$('npMusicStatus').textContent=st;}
+    const title=s.name+(s.artist&&s.artist!=='未知歌手'?' - '+s.artist:'');
+    if(ls){ls.style.display='flex';$('lsMusicTitle').textContent=title;$('lsMusicStatus').textContent=st;}
+    if(np){np.style.display='flex';$('npMusicTitle').textContent=title;$('npMusicStatus').textContent=st;}
   }else{
     if(ls)ls.style.display='none';
     if(np)np.style.display='none';
   }
+  updateMusicBar();
+}
+function updateMusicBar(){
+  if(!audioEl||!isFinite(audioEl.duration)||audioEl.duration<=0)return;
+  const p=Math.min(100,audioEl.currentTime/audioEl.duration*100);
+  const f1=$('lsMusicFill'),f2=$('npMusicFill');
+  if(f1)f1.style.width=p+'%';
+  if(f2)f2.style.width=p+'%';
 }
 function onMeta(){const d=audioEl.duration;if(isFinite(d)){$('pDur').textContent=fmtDur(d);$('pSeek').max=Math.floor(d);}}
-function onTimeUpdate(){const t=audioEl.currentTime;$('pCur').textContent=fmtDur(t);$('pSeek').value=Math.floor(t);updateLrc(t);}
+function onTimeUpdate(){const t=audioEl.currentTime;$('pCur').textContent=fmtDur(t);$('pSeek').value=Math.floor(t);updateLrc(t);updateMusicBar();}
 function fmtDur(s){s=Math.floor(s);const m=Math.floor(s/60),sec=s%60;return m+':'+String(sec).padStart(2,'0');}
 function setPlayIcon(playing){
   const play=$('pPlay').querySelector('.icp-play');
@@ -374,7 +383,7 @@ function parseLrc(lrc){
   res.sort((a,b)=>a.t-b.t);
   return res;
 }
-$('pPlay').onclick=()=>{if(!audioEl)return;if(audioEl.paused){audioEl.play();setPlayIcon(true);const d=$('disc');if(d)d.classList.add('spin');try{localStorage.setItem('lastSong',JSON.stringify({name:curSong?curSong.name:'',playing:true}));}catch(e){}updateLockMusic();}else{audioEl.pause();setPlayIcon(false);const d=$('disc');if(d)d.classList.remove('spin');try{localStorage.setItem('lastSong',JSON.stringify({name:curSong?curSong.name:'',playing:false}));}catch(e){}updateLockMusic();}};
+$('pPlay').onclick=()=>{if(!audioEl)return;if(audioEl.paused){audioEl.play();setPlayIcon(true);const d=$('disc');if(d)d.classList.add('spin');try{localStorage.setItem('lastSong',JSON.stringify({name:curSong?curSong.name:'',artist:curSong?curSong.artist:'',playing:true}));}catch(e){}updateLockMusic();}else{audioEl.pause();setPlayIcon(false);const d=$('disc');if(d)d.classList.remove('spin');try{localStorage.setItem('lastSong',JSON.stringify({name:curSong?curSong.name:'',artist:curSong?curSong.artist:'',playing:false}));}catch(e){}updateLockMusic();}};
 $('pPrev').onclick=()=>{if(curIdx>0){curIdx--;playSong(musicList[curIdx]);}};
 $('pNext').onclick=()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}};
 $('pSeek').addEventListener('input',e=>{if(audioEl&&isFinite(audioEl.duration))audioEl.currentTime=+e.target.value;});
