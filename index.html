@@ -165,7 +165,16 @@
 <div id="sub-player" class="sub">
   <div class="navbar"><button class="back" data-hide>‹</button><div class="title">正在播放</div><button class="nav-btn" id="btnListenTogether">🎧一起听</button></div>
   <div class="sub-body player-body">
-    <div class="p-cover-wrap" id="pCoverWrap"><img id="pCover" class="p-cover" style="display:none"></div>
+    <div class="disc-stage">
+      <div class="disc" id="disc">
+        <div class="disc-label">
+          <img id="pCover" class="p-cover" style="display:none">
+          <div class="disc-cover-ph">🎵</div>
+        </div>
+        <div class="disc-hole"></div>
+      </div>
+      <div class="tonearm"></div>
+    </div>
     <div class="p-name" id="pName">-</div>
     <div class="p-artist" id="pArtist">-</div>
     <div class="p-progress"><input type="range" id="pSeek" min="0" max="0" value="0"><div class="p-time"><span id="pCur">0:00</span><span id="pDur">0:00</span></div></div>
@@ -279,7 +288,7 @@
 
 <input type="file" id="filePNG" accept=".png,image/png" style="display:none">
 <input type="file" id="fileWP" accept="image/*" style="display:none">
-<input type="file" id="fileAudio" accept="audio/*" multiple style="display:none">
+<input type="file" id="fileAudio" multiple style="display:none">
 <input type="file" id="fileLrc" accept=".lrc,.txt,text/plain" style="display:none">
 <input type="file" id="fileCover" accept="image/*" style="display:none">
 

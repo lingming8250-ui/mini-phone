@@ -277,6 +277,7 @@ let curSong=null;
 let curIdx=-1;
 let audioEl=null;
 let lrcParsed=[];
+const AUDIO_EXT=['mp3','wav','flac','m4a','aac','ogg','opus','oga','mid','midi','aiff','aif'];
 async function loadMusicList(){musicList=await idbAll();musicList.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));renderSongList();}
 function renderSongList(){
   const box=$('songList');if(!box)return;
@@ -292,12 +293,19 @@ function renderSongList(){
 }
 async function playSong(s){
   curSong=s;
-  if(!audioEl){audioEl=new Audio();audioEl.addEventListener('timeupdate',onTimeUpdate);audioEl.addEventListener('loadedmetadata',onMeta);audioEl.addEventListener('ended',()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}});}
+  if(!audioEl){
+    audioEl=new Audio();
+    audioEl.addEventListener('timeupdate',onTimeUpdate);
+    audioEl.addEventListener('loadedmetadata',onMeta);
+    audioEl.addEventListener('ended',()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}});
+    audioEl.addEventListener('error',()=>{toast('这格式可能播不了，试试 mp3/wav/flac/m4a');$('pPlay').textContent='▶️';const d=$('disc');if(d)d.classList.remove('spin');});
+  }
   if(audioEl.src)URL.revokeObjectURL(audioEl.src);
   audioEl.src=URL.createObjectURL(s.audio);
   lrcParsed=parseLrc(s.lrc||'');
   renderPlayer(s);
   navigate({kind:'sub',id:'sub-player'});
+  const d=$('disc');if(d)d.classList.add('spin');
   audioEl.play().catch(()=>{});
 }
 function onMeta(){const d=audioEl.duration;if(isFinite(d)){$('pDur').textContent=fmtDur(d);$('pSeek').max=Math.floor(d);}}
@@ -307,7 +315,9 @@ function renderPlayer(s){
   $('pName').textContent=s.name;
   $('pArtist').textContent=s.artist||'未知歌手';
   const cv=$('pCover');
-  if(s.cover){cv.src=s.cover;cv.style.display='block';$('pCoverWrap').classList.add('spin');}else{cv.style.display='none';$('pCoverWrap').classList.remove('spin');}
+  const ph=document.querySelector('.disc-cover-ph');
+  if(s.cover){cv.src=s.cover;cv.style.display='block';if(ph)ph.style.display='none';}
+  else{cv.style.display='none';if(ph)ph.style.display='flex';}
   $('pCur').textContent='0:00';$('pDur').textContent='0:00';$('pSeek').value=0;$('pSeek').max=0;
   $('pPlay').textContent='⏸';
   renderLrc();
@@ -342,19 +352,22 @@ function parseLrc(lrc){
   res.sort((a,b)=>a.t-b.t);
   return res;
 }
-$('pPlay').onclick=()=>{if(!audioEl)return;if(audioEl.paused){audioEl.play();$('pPlay').textContent='⏸';}else{audioEl.pause();$('pPlay').textContent='▶️';}};
+$('pPlay').onclick=()=>{if(!audioEl)return;if(audioEl.paused){audioEl.play();$('pPlay').textContent='⏸';const d=$('disc');if(d)d.classList.add('spin');}else{audioEl.pause();$('pPlay').textContent='▶️';const d=$('disc');if(d)d.classList.remove('spin');}};
 $('pPrev').onclick=()=>{if(curIdx>0){curIdx--;playSong(musicList[curIdx]);}};
 $('pNext').onclick=()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}};
 $('pSeek').addEventListener('input',e=>{if(audioEl&&isFinite(audioEl.duration))audioEl.currentTime=+e.target.value;});
 $('btnImportSong').onclick=()=>{openSheet(`<div class="menu-item" id="impAudio" style="border:none;border-radius:12px;margin-bottom:8px">🎧 导入音频（可多选）</div><div class="menu-item" id="impLrc" style="border:none;border-radius:12px;margin-bottom:8px">📝 导入歌词（.lrc/.txt）</div><div class="menu-item" id="impCover" style="border:none;border-radius:12px">🖼 导入封面</div><button class="btn gray" id="impCancel" style="margin-top:12px">取消</button>`);$('impAudio').onclick=()=>{closeSheet();$('fileAudio').click();};$('impLrc').onclick=()=>{closeSheet();$('fileLrc').click();};$('impCover').onclick=()=>{closeSheet();$('fileCover').click();};$('impCancel').onclick=closeSheet;};
 $('fileAudio').addEventListener('change',function(){
-  const files=[...this.files];if(!files.length)return;
-  const pending=files.map(f=>({name:f.name.replace(/\.(mp3|flac|wav|m4a|aac|ogg|webm)$/i,''),artist:'未知歌手',audio:f,cover:'',lrc:''}));
+  const all=[...this.files];if(!all.length)return;
+  const pending=all.filter(f=>{const ext=(f.name.split('.').pop()||'').toLowerCase();return AUDIO_EXT.includes(ext);});
+  const skipped=all.length-pending.length;
+  if(!pending.length){toast('没识别到音频（支持 mp3/wav/flac/m4a/aac）');this.value='';return;}
+  const files=pending.map(f=>({name:f.name.replace(/\.[^.]+$/,''),artist:'未知歌手',audio:f,cover:'',lrc:''}));
   (async()=>{
-    for(const p of pending){await idbPut({id:uid(),name:p.name,artist:p.artist,audio:p.audio,cover:p.cover,lrc:p.lrc,addedAt:Date.now()});}
+    for(const p of files){await idbPut({id:uid(),name:p.name,artist:p.artist,audio:p.audio,cover:p.cover,lrc:p.lrc,addedAt:Date.now()});}
     this.value='';
     await loadMusicList();
-    toast('已导入 '+pending.length+' 首');
+    toast('已导入 '+files.length+' 首'+(skipped?'，跳过 '+skipped+' 个非音频文件':''));
   })().catch(e=>toast('导入失败：'+e.message));
 });
 $('fileLrc').addEventListener('change',function(){
