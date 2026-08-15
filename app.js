@@ -33,6 +33,7 @@ let tmpCharAvatar='';
 let tmpProtaAvatar='';
 let navAnim='push';
 let navLock=false;
+let cleanupTimer=null;
 const WALLPAPERS=[
 {id:'aurora',name:'极光',bg:'radial-gradient(ellipse at 20% 14%, rgba(94,60,255,.34), transparent 48%), radial-gradient(ellipse at 85% 30%, rgba(0,140,255,.28), transparent 50%), radial-gradient(ellipse at 55% 95%, rgba(255,80,150,.24), transparent 52%), #08080c'},
 {id:'ocean',name:'深海',bg:'radial-gradient(ellipse at 30% 20%, rgba(0,80,200,.4), transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(0,200,180,.3), transparent 50%), #04060c'},
@@ -88,13 +89,13 @@ let stack=[{kind:'home'}];
 function getViewEl(v){if(v.kind==='wechat')return $('app-wechat');if(v.kind==='sub')return $(v.id);return null;}
 function renderView(){
   const v=stack[stack.length-1];
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','zoom-in','slide-in','slide-out'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','zoom-in','slide-in','slide-in-left','slide-out'));
   document.querySelectorAll('.sub').forEach(s=>s.classList.remove('active','slide-in','slide-in-left','slide-out'));
   $('tabbar').style.display='none';
   if(v.kind==='home')$('home').classList.add('active');
   else if(v.kind==='wechat'){
     $('app-wechat').classList.add('active');
-    $('app-wechat').classList.add(navAnim==='push'?'zoom-in':'slide-in');
+    if(navAnim==='push')$('app-wechat').classList.add('zoom-in');
     $('tabbar').style.display='flex';
     document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
     $('tab-'+v.tab).classList.add('active');
@@ -103,7 +104,7 @@ function renderView(){
     if(v.tab==='contacts')renderContacts();
     if(v.tab==='me')renderMe();
   }else if(v.kind==='sub'){
-    const el=$(v.id);if(el){el.classList.add('active');el.classList.add(navAnim==='push'?'slide-in':'slide-in-left');}
+    const el=$(v.id);if(el){el.classList.add('active');if(navAnim==='push')el.classList.add('slide-in');}
     if(v.id==='sub-chat')renderChat();
     else if(v.id==='sub-chat-info')renderChatInfo();
     else if(v.id==='sub-vocab')renderVocab();
@@ -118,9 +119,43 @@ function renderView(){
     else if(v.id==='sub-memory')renderMem();
   }
 }
-function navigate(v){navAnim='push';stack.push(v);renderView();if(v.kind==='sub'&&v.id==='sub-chat'){setTimeout(()=>{try{$('input').focus()}catch(e){}},120)}}
-function back(){if(stack.length<=1)return;stack.pop();navAnim='pop';renderView();}
-function goHome(){stack=[{kind:'home'}];navAnim='pop';renderView();}
+function navigate(v){
+  navAnim='push';
+  const oldEl=getViewEl(stack[stack.length-1]);
+  stack.push(v);
+  renderView();
+  if(oldEl){
+    oldEl.classList.add('active');
+    if(cleanupTimer)clearTimeout(cleanupTimer);
+    cleanupTimer=setTimeout(()=>{oldEl.classList.remove('active');cleanupTimer=null;},380);
+  }
+  if(v.kind==='sub'&&v.id==='sub-chat'){setTimeout(()=>{try{$('input').focus()}catch(e){}},120);}
+}
+function back(){
+  if(navLock)return;
+  if(stack.length<=1)return;
+  navAnim='pop';
+  const curEl=getViewEl(stack[stack.length-1]);
+  stack.pop();
+  if(curEl&&curEl.classList.contains('active')){
+    navLock=true;
+    renderView();
+    curEl.classList.add('active','slide-out');
+    setTimeout(()=>{curEl.classList.remove('active','slide-out');navLock=false;},380);
+  }else{renderView();}
+}
+function goHome(){
+  if(navLock)return;
+  navAnim='pop';
+  const curEl=getViewEl(stack[stack.length-1]);
+  stack=[{kind:'home'}];
+  if(curEl&&curEl.classList.contains('active')){
+    navLock=true;
+    renderView();
+    curEl.classList.add('active','slide-out');
+    setTimeout(()=>{curEl.classList.remove('active','slide-out');navLock=false;},380);
+  }else{renderView();}
+}
 function switchTab(tab){const top=stack[stack.length-1];if(top&&top.kind==='wechat')top.tab=tab;else{navAnim='push';stack.push({kind:'wechat',tab});}renderView();}
 function openApp(el,app){
   let ox='50%',oy='50%';
@@ -197,7 +232,7 @@ function buildMsgList(c){const msgs=chats[activeCharId]||[];const lim=c.histCoun
 function processAI(raw,c){if(!raw){raw='(对方没回出内容，检查模型名是否正确)'}const parts=raw.split(/<<<SPLIT>>>/).map(s=>s.trim()).filter(Boolean);if(!parts.length)parts.push(raw.trim());parts.forEach(p=>{const imgMatch=p.match(/<<<IMG:(.+?)>>>/);if(imgMatch&&p.trim()===imgMatch[0].trim()){chats[activeCharId].push({role:'assistant',type:'image',content:imgMatch[1].trim(),time:Date.now()});}else{chats[activeCharId].push({role:'assistant',type:'text',content:p,time:Date.now()});}});save(LS.chats,chats);renderChat();scrollBottom();}
 function hitLore(t){if(!t)return[];return lore.filter(it=>it.keys.split(',').map(k=>k.trim()).filter(Boolean).some(k=>t.includes(k))).map(it=>it.content)}
 function buildSys(last,chara){const p=[];const pr=getProta();if(pr.name&&pr.name!=='我')p.push(`你正在和「${pr.name}」对话，${pr.name}的情况：${pr.desc||'（未详细设定）'}`.trim());if(chara){p.push(`你正在扮演角色「${chara.name}」，严格贴合以下人设，不要跳出角色。`);if(chara.desc)p.push(`【背景】\n${chara.desc}`);if(chara.personality)p.push(`【性格】\n${chara.personality}`);if(chara.scenario)p.push(`【场景】\n${chara.scenario}`);if(chara.mes_example)p.push(`【对话示例·模仿其语气】\n${chara.mes_example}`);}const l=hitLore(last);if(l.length)p.push(`【世界设定·涉及相关内容时参考】\n${l.join('\n')}`);const mi=mem[chara.id];if(mi&&mi.summary)p.push(`【之前对话摘要·保持连贯，勿主动提及】\n${mi.summary}`);let s=st.sys||DEFAULT_SYS;s=s.replace(/\{name\}/g,chara?chara.name:'对方');p.push(s);p.push('【回复格式要求】\n像真人聊天一样回复，可以连续发多条短消息。需要发多条时，用 <<<SPLIT>>> 分隔每条消息。想要发表情包图片时，单独发一条 <<<IMG:图片URL>>> 格式的消息。平时简短自然回复一条即可，不要总是一大段。');return p.join('\n\n');}
-async function callAPI(list,onDelta){const url=st.baseurl.replace(/\/+$/,'')+'/chat/completions';const ctrl=new AbortController();const tm=setTimeout(()=>ctrl.abort(),60000);let res;try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+st.apiKey},body:JSON.stringify({model:st.model,messages:list,temperature:st.temperature,max_tokens:st.maxTokens,top_p:st.topP,stream:false}),signal:ctrl.signal});}catch(e){clearTimeout(tm);if(e.name==='AbortError')throw new Error('请求超时（60秒没响应）');throw new Error('请求被浏览器拦截，可能是跨域(CORS)限制，换个支持跨域的API服务或加代理');}clearTimeout(tm);if(!res.ok){const t=await res.text().catch(()=>'');throw new Error('HTTP '+res.status+' '+t.slice(0,120))}const j=await res.json();return extractContent(j);}
+async function callAPI(list,onDelta){const url=st.baseurl.replace(/\/+$/,'')+'/chat/completions';const ctrl=new AbortController();const tm=setTimeout(()=>ctrl.abort(),180000);let res;try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+st.apiKey},body:JSON.stringify({model:st.model,messages:list,temperature:st.temperature,max_tokens:st.maxTokens,top_p:st.topP,stream:false}),signal:ctrl.signal});}catch(e){clearTimeout(tm);if(e.name==='AbortError')throw new Error('请求超时（180秒没响应）');throw new Error('请求被浏览器拦截，可能是跨域(CORS)限制，换个支持跨域的API服务或加代理');}clearTimeout(tm);if(!res.ok){const t=await res.text().catch(()=>'');throw new Error('HTTP '+res.status+' '+t.slice(0,120))}const j=await res.json();return extractContent(j);}
 $('btnPlus').onclick=()=>{openSheet(`<div class="menu-item" id="mImg" style="border:none;border-radius:12px;margin-bottom:8px">发表情包（图片URL）</div><div class="menu-item" id="mBatch" style="border:none;border-radius:12px">批量发送（多句）</div><button class="btn gray" id="mPlusCancel" style="margin-top:12px">取消</button>`);$('mImg').onclick=()=>{closeSheet();openImgSheet()};$('mBatch').onclick=()=>{closeSheet();openBatchSheet()};$('mPlusCancel').onclick=closeSheet;};
 function openImgSheet(){openSheet(`<div class="field"><label>图片 URL</label><input id="imgUrl" placeholder="https://.../xxx.png"></div><div style="text-align:center;color:var(--text2);font-size:12px;margin-bottom:10px">填图片直链地址，发送后显示为表情包</div><button class="btn wx" id="imgSend">发送图片</button><button class="btn gray" id="imgCancel">取消</button>`);$('imgSend').onclick=()=>{const u=$('imgUrl').value.trim();if(!u){toast('填个图片URL');return}if(!chats[activeCharId])chats[activeCharId]=[];chats[activeCharId].push({role:'user',type:'image',content:u,time:Date.now()});save(LS.chats,chats);closeSheet();renderChat();callAI();};$('imgCancel').onclick=closeSheet;}
 function openBatchSheet(){openSheet(`<div class="field"><label>批量发送（每行一句）</label><textarea id="batchText" style="min-height:120px" placeholder="第一句\n第二句\n第三句"></textarea></div><button class="btn wx" id="batchSend">发送</button><button class="btn gray" id="batchCancel">取消</button>`);$('batchSend').onclick=()=>{const lines=$('batchText').value.split('\n').map(s=>s.trim()).filter(Boolean);if(!lines.length){toast('写点内容');return}closeSheet();lines.forEach(l=>pushUserText(l));callAI();};$('batchCancel').onclick=closeSheet;}
