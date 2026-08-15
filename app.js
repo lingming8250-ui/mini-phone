@@ -101,6 +101,7 @@ function renderView(){
     else if(v.id==='sub-moments')renderMoments();
     else if(v.id==='sub-wallet')renderWallet();
     else if(v.id==='sub-prota')renderProta();
+    else if(v.id==='sub-music')loadMusicList();
     else if(v.id==='sub-settings')fillSetForm();
     else if(v.id==='sub-models')loadModels();
     else if(v.id==='sub-wallpaper')renderWallpaper();
@@ -122,6 +123,7 @@ function openApp(el,app){
   else if(app==='lore')targetId='sub-lore';
   else if(app==='memory')targetId='sub-memory';
   else if(app==='data')targetId='sub-data';
+  else if(app==='music')targetId='sub-music';
   if(targetId){const t=document.getElementById(targetId);if(t)t.style.transformOrigin=ox+' '+oy;}
   if(app==='wechat')navigate({kind:'wechat',tab:'wechat'});
   else if(app==='vocab')navigate({kind:'sub',id:'sub-vocab'});
@@ -129,6 +131,7 @@ function openApp(el,app){
   else if(app==='lore')navigate({kind:'sub',id:'sub-lore'});
   else if(app==='memory')navigate({kind:'sub',id:'sub-memory'});
   else if(app==='data')navigate({kind:'sub',id:'sub-data'});
+  else if(app==='music')navigate({kind:'sub',id:'sub-music'});
 }
 document.querySelectorAll('[data-hide]').forEach(el=>el.addEventListener('click',back));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',goHome));
@@ -261,3 +264,167 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 applyWallpaper();
 renderChatList();renderContacts();renderMe();renderWallet();
 renderView();
+/* ===== 音乐 ===== */
+const DB_NAME='mini-phone-db',DB_VER=1,STORE='songs';
+let _dbp=null;
+function openDB(){if(_dbp)return _dbp;_dbp=new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});return _dbp;}
+function idbReq(req){return new Promise((res,rej)=>{req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
+async function idbPut(song){const db=await openDB();const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(song);return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+async function idbAll(){const db=await openDB();const tx=db.transaction(STORE,'readonly');return idbReq(tx.objectStore(STORE).getAll());}
+async function idbDel(id){const db=await openDB();const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+let musicList=[];
+let curSong=null;
+let curIdx=-1;
+let audioEl=null;
+let lrcParsed=[];
+async function loadMusicList(){musicList=await idbAll();musicList.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));renderSongList();}
+function renderSongList(){
+  const box=$('songList');if(!box)return;
+  if(!musicList.length){box.innerHTML='<div class="empty">🎵 还没有音乐<br>点右上角「＋导入」加歌</div>';return;}
+  box.innerHTML='';
+  musicList.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='c-item song-item';
+    const coverHtml=s.cover?`<img class="song-cover" src="${s.cover}">`:`<div class="song-cover song-cover-ph">🎵</div>`;
+    d.innerHTML=`${coverHtml}<div class="info"><div class="name">${esc(s.name)}</div><div class="last">${esc(s.artist||'未知歌手')}</div></div>`;
+    d.onclick=()=>{curIdx=i;playSong(s);};
+    box.appendChild(d);
+  });
+}
+async function playSong(s){
+  curSong=s;
+  if(!audioEl){audioEl=new Audio();audioEl.addEventListener('timeupdate',onTimeUpdate);audioEl.addEventListener('loadedmetadata',onMeta);audioEl.addEventListener('ended',()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}});}
+  if(audioEl.src)URL.revokeObjectURL(audioEl.src);
+  audioEl.src=URL.createObjectURL(s.audio);
+  lrcParsed=parseLrc(s.lrc||'');
+  renderPlayer(s);
+  navigate({kind:'sub',id:'sub-player'});
+  audioEl.play().catch(()=>{});
+}
+function onMeta(){const d=audioEl.duration;if(isFinite(d)){$('pDur').textContent=fmtDur(d);$('pSeek').max=Math.floor(d);}}
+function onTimeUpdate(){const t=audioEl.currentTime;$('pCur').textContent=fmtDur(t);$('pSeek').value=Math.floor(t);updateLrc(t);}
+function fmtDur(s){s=Math.floor(s);const m=Math.floor(s/60),sec=s%60;return m+':'+String(sec).padStart(2,'0');}
+function renderPlayer(s){
+  $('pName').textContent=s.name;
+  $('pArtist').textContent=s.artist||'未知歌手';
+  const cv=$('pCover');
+  if(s.cover){cv.src=s.cover;cv.style.display='block';$('pCoverWrap').classList.add('spin');}else{cv.style.display='none';$('pCoverWrap').classList.remove('spin');}
+  $('pCur').textContent='0:00';$('pDur').textContent='0:00';$('pSeek').value=0;$('pSeek').max=0;
+  $('pPlay').textContent='⏸';
+  renderLrc();
+}
+function renderLrc(){
+  const box=$('pLyrics');if(!box)return;
+  if(!lrcParsed.length){box.innerHTML='<div class="empty" style="padding:20px">暂无歌词<br><span style="font-size:12px">导入 .lrc 歌词后这里会滚动显示</span></div>';return;}
+  box.innerHTML='';
+  lrcParsed.forEach((l,i)=>{const d=document.createElement('div');d.className='lrc-line';d.textContent=l.text;d.onclick=()=>{if(audioEl&&isFinite(audioEl.duration))audioEl.currentTime=l.t;};box.appendChild(d);});
+}
+function updateLrc(t){
+  const lines=document.querySelectorAll('.lrc-line');if(!lines.length)return;
+  let cur=-1;
+  for(let i=0;i<lrcParsed.length;i++){if(lrcParsed[i].t<=t)cur=i;else break;}
+  lines.forEach((el,i)=>el.classList.toggle('on',i===cur));
+  if(cur>=0){try{lines[cur].scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}}
+}
+function parseLrc(lrc){
+  const res=[];
+  (lrc||'').split('\n').forEach(line=>{
+    const ms=line.match(/\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g);
+    if(!ms)return;
+    const text=line.replace(/\[[^\]]*\]/g,'').trim();
+    if(!text)return;
+    ms.forEach(m=>{
+      const mm=m.match(/\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/);
+      const min=+mm[1],sec=+mm[2],f=mm[3]||'0';
+      const msNum=+f*(f.length===1?100:f.length===2?10:1);
+      res.push({t:min*60+sec+msNum/1000,text});
+    });
+  });
+  res.sort((a,b)=>a.t-b.t);
+  return res;
+}
+$('pPlay').onclick=()=>{if(!audioEl)return;if(audioEl.paused){audioEl.play();$('pPlay').textContent='⏸';}else{audioEl.pause();$('pPlay').textContent='▶️';}};
+$('pPrev').onclick=()=>{if(curIdx>0){curIdx--;playSong(musicList[curIdx]);}};
+$('pNext').onclick=()=>{if(curIdx<musicList.length-1){curIdx++;playSong(musicList[curIdx]);}};
+$('pSeek').addEventListener('input',e=>{if(audioEl&&isFinite(audioEl.duration))audioEl.currentTime=+e.target.value;});
+$('btnImportSong').onclick=()=>{openSheet(`<div class="menu-item" id="impAudio" style="border:none;border-radius:12px;margin-bottom:8px">🎧 导入音频（可多选）</div><div class="menu-item" id="impLrc" style="border:none;border-radius:12px;margin-bottom:8px">📝 导入歌词（.lrc/.txt）</div><div class="menu-item" id="impCover" style="border:none;border-radius:12px">🖼 导入封面</div><button class="btn gray" id="impCancel" style="margin-top:12px">取消</button>`);$('impAudio').onclick=()=>{closeSheet();$('fileAudio').click();};$('impLrc').onclick=()=>{closeSheet();$('fileLrc').click();};$('impCover').onclick=()=>{closeSheet();$('fileCover').click();};$('impCancel').onclick=closeSheet;};
+$('fileAudio').addEventListener('change',function(){
+  const files=[...this.files];if(!files.length)return;
+  const pending=files.map(f=>({name:f.name.replace(/\.(mp3|flac|wav|m4a|aac|ogg|webm)$/i,''),artist:'未知歌手',audio:f,cover:'',lrc:''}));
+  (async()=>{
+    for(const p of pending){await idbPut({id:uid(),name:p.name,artist:p.artist,audio:p.audio,cover:p.cover,lrc:p.lrc,addedAt:Date.now()});}
+    this.value='';
+    await loadMusicList();
+    toast('已导入 '+pending.length+' 首');
+  })().catch(e=>toast('导入失败：'+e.message));
+});
+$('fileLrc').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{
+    const text=r.result;
+    const target=curSong||musicList[0];
+    if(target){target.lrc=text;idbPut(target).then(()=>{toast('歌词已绑定「'+target.name+'」');loadMusicList();if(curSong&&curSong.id===target.id){lrcParsed=parseLrc(text);renderLrc();}});}
+    else toast('先导入音频，再导歌词');
+  };
+  r.readAsText(f);this.value='';
+});
+$('fileCover').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{
+    const data=r.result;
+    const target=curSong||musicList[0];
+    if(target){target.cover=data;idbPut(target).then(()=>{toast('封面已绑定「'+target.name+'」');loadMusicList();if(curSong&&curSong.id===target.id){renderPlayer(curSong);}});}
+    else toast('先导入音频，再导封面');
+  };
+  r.readAsDataURL(f);this.value='';
+});
+$('btnListenTogether').onclick=()=>{
+  if(!curSong){toast('先放首歌');return;}
+  if(!chars.length){toast('先去微信建个角色');return;}
+  let html='<div class="group-title">选谁一起听</div>';
+  chars.forEach(c=>{html+=`<div class="menu-item" id="lt_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span></div>`;});
+  html+='<button class="btn gray" id="ltCancel" style="margin-top:10px">取消</button>';
+  openSheet(html);
+  chars.forEach(c=>{const it=$('lt_'+c.id);if(it)it.onclick=()=>{closeSheet();startListen(c);};});
+  $('ltCancel').onclick=closeSheet;
+};
+async function startListen(c){
+  if(!st.baseurl||!st.apiKey){toast('先到设置填 API');return;}
+  if(!st.model){toast('先选模型');return;}
+  const panel=$('listenPanel');if(!panel)return;
+  panel.style.display='flex';
+  $('listenChar').textContent=c.name;
+  $('listenLog').innerHTML='<div class="empty" style="padding:20px">🎧 '+esc(c.name)+' 正在听《'+esc(curSong.name)+'》…</div>';
+  const lyric=lrcParsed.map(l=>l.text).join('\n')||'(无歌词)';
+  const sys=buildListenSys(c,curSong,lyric);
+  try{
+    const url=st.baseurl.replace(/\/+$/,'')+'/chat/completions';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+st.apiKey},body:JSON.stringify({model:st.model,stream:false,messages:[{role:'system',content:sys}],temperature:st.temperature,max_tokens:st.maxTokens})});
+    if(!res.ok){const t=await res.text().catch(()=>'');throw new Error('HTTP '+res.status+' '+t.slice(0,80));}
+    const j=await res.json();
+    const raw=j.choices?.[0]?.message?.content||'';
+    const parts=raw.split(/<<<SPLIT>>>/).map(s=>s.trim()).filter(Boolean);
+    $('listenLog').innerHTML='';
+    (parts.length?parts:['（ta 没说话，就静静听着）']).forEach((p,idx)=>{setTimeout(()=>addListenMsg(c,p),idx*900);});
+  }catch(e){
+    $('listenLog').innerHTML='<div class="empty" style="padding:20px">⚠️ '+esc(e.message)+'</div>';
+  }
+}
+function addListenMsg(c,text){
+  const log=$('listenLog');if(!log)return;
+  const d=document.createElement('div');d.className='listen-msg';
+  d.innerHTML=`<div class="lm-av" style="background:linear-gradient(135deg,rgba(94,92,230,.7),rgba(191,90,242,.6))">${esc(c.name[0]||'?')}</div><div class="lm-bubble">${esc(text)}</div>`;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+function buildListenSys(c,song,lyric){
+  const pr=getProta();
+  const p=[];
+  p.push(`你正在扮演角色「${c.name}」，严格贴合人设，不要跳出角色。`);
+  if(c.personality)p.push(`【性格】\n${c.personality}`);
+  if(c.desc)p.push(`【背景】\n${c.desc}`);
+  if(c.mes_example)p.push(`【对话示例】\n${c.mes_example}`);
+  p.push(`现在你和「${pr.name||'对方'}」一起在听一首歌：\n《${song.name}》 - ${song.artist||'未知歌手'}\n\n歌词如下：\n${lyric}`);
+  p.push(`请以角色的口吻，自然地对这首歌发表反应：可以跟唱几句歌词、说说听这首歌的感想、联想到自己的事。像真人一边听歌一边和身边人闲聊那样，口语化、简短。用 <<<SPLIT>>> 分隔你要说的多条短消息。不要一大段，不要解释设定。`);
+  return p.join('\n\n');
+}
+$('listenClose').onclick=()=>{$('listenPanel').style.display='none';};
+loadMusicList();
