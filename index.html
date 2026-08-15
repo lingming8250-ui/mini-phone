@@ -11,7 +11,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>小手机</title>
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -225,9 +225,14 @@
     <div class="group">
       <div class="cell"><span class="label">生图 Base URL</span><input class="cell-edit" id="setGenBaseurl" placeholder="https://..." style="text-align:right"></div>
       <div class="cell"><span class="label">生图 Key</span><input class="cell-edit" id="setGenKey" type="password" placeholder="sk-..." style="text-align:right"></div>
+      <div class="cell"><span class="label">生图模型</span><input class="cell-edit" id="setGenModel" placeholder="如 flux / dall-e-3" style="text-align:right"></div>
+      <div class="cell" id="cellLoadGen"><span class="label">拉取生图模型</span><span class="value">从生图地址拉列表</span><span class="chev">›</span></div>
     </div>
     <div class="group-title">模型</div>
-    <div class="group"><div class="cell" id="cellModel"><span class="label">模型</span><span class="value" id="setModel">未选择</span><span class="chev">›</span></div></div>
+    <div class="group">
+      <div class="cell" id="cellModel"><span class="label">模型（点此拉取）</span><span class="value" id="setModel">未选择</span><span class="chev">›</span></div>
+      <div class="cell"><span class="label">手动填模型</span><input class="cell-edit" id="setModelManual" placeholder="如 gemini-2.5-pro" style="text-align:right"></div>
+    </div>
     <div class="group-title">生成参数</div>
     <div class="group">
       <div class="cell"><span class="label">温度</span><div class="slider-row"><input type="range" id="setTemp" min="0" max="2" step="0.1" value="0.9"><span class="sval" id="tempVal">0.9</span></div></div>
@@ -331,6 +336,6 @@
 <div class="sheet" id="sheet"><div class="sheet-handle"></div><div id="sheetContent"></div></div>
 <div id="toast"></div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
