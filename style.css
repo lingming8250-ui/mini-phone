@@ -209,7 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .notif-panel.show{transform:translateY(0)}
 .np-clock{display:flex;flex-direction:column;align-items:center;padding-top:calc(8px + env(safe-area-inset-top))}
 .np-date{font-size:17px;color:var(--text2);text-shadow:0 1px 8px rgba(0,0,0,.55);margin-bottom:5px}
-.np-time{font-size:102px;font-weight:600;text-shadow:0 2px 20px rgba(0,0,0,.55);line-height:1}
+.np-time{font-size:116px;font-weight:600;text-shadow:0 2px 20px rgba(0,0,0,.55);line-height:1}
 .np-music{display:flex;flex-direction:column;align-items:flex-start;gap:7px;margin:18px 0 0 28px}
 .np-close{position:absolute;top:calc(12px + env(safe-area-inset-top));right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .np-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
