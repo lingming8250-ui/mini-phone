@@ -281,9 +281,9 @@ document.querySelectorAll('.plus-item').forEach(el=>{
     else if(a==='wallet')navigate({kind:'sub',id:'sub-wallet'});
     else if(a==='loc')toast('位置功能待开发');
     else if(a==='redpkt')toast('红包功能待开发');
+    else if(a==='gift')toast('礼物功能待开发');
     else if(a==='trans')toast('转账功能待开发');
     else if(a==='camera')toast('拍摄功能待开发');
-    else if(a==='video')toast('视频通话待开发');
   });
 });
 function openImgSheet(){openSheet(`<div class="field"><label>表情包图片 URL</label><input id="imgUrl" placeholder="https://.../xxx.png"></div><div style="text-align:center;color:var(--text2);font-size:12px;margin-bottom:10px">填图片直链地址，发送后显示为表情包</div><button class="btn wx" id="imgSend">发送图片</button><button class="btn gray" id="imgCancel">取消</button>`);$('imgSend').onclick=()=>{const u=$('imgUrl').value.trim();if(!u){toast('填个图片URL');return}if(!chats[activeCharId])chats[activeCharId]=[];chats[activeCharId].push({role:'user',type:'image',content:u,time:Date.now()});save(LS.chats,chats);closeSheet();renderChat();};$('imgCancel').onclick=closeSheet;}
