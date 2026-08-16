@@ -125,7 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .msg.sys .bubble{background:transparent;border:1px dashed var(--border);color:var(--text2);font-size:12px;text-align:center;border-radius:8px}
 .bubble.typing::after{content:"▍";animation:blink 1s infinite}
 @keyframes blink{50%{opacity:0}}
-.chat-input{display:flex;align-items:flex-end;gap:6px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--input-bar-bg);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-top:1px solid var(--border);flex-shrink:0}
+.chat-input{position:relative;display:flex;align-items:flex-end;gap:6px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--input-bar-bg);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-top:1px solid var(--border);flex-shrink:0}
 .chat-input .ci-btn{width:38px;height:38px;border:none;background:none;color:var(--text);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .chat-input .ci-btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .chat-input .ci-btn:disabled{opacity:.4}
@@ -135,9 +135,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","M
 .chat-input .mic-in{position:absolute;right:6px;bottom:1px;width:34px;height:36px;border:none;background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .chat-input .mic-in svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .chat-input .mic-in.rec{color:var(--red)}
-.plus-panel{display:none;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.plus-panel{position:absolute;left:0;right:0;bottom:100%;display:none;background:var(--surface);border-top:1px solid var(--border);z-index:5;border-radius:16px 16px 0 0}
 .plus-panel.show{display:block;animation:plusUp .22s ease}
-@keyframes plusUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes plusUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 .plus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 8px;padding:16px 10px 14px}
 .plus-item{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}
 .plus-item .pi-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--glass);border:1px solid var(--border)}
