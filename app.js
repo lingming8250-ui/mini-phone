@@ -269,26 +269,23 @@ async function callAPI(list,onDelta){
 }
 $('btnSpeak').onclick=speakNow;
 $('btnEmoji').onclick=openImgSheet;
-$('btnPlus').onclick=openPlusPanel;
+$('btnPlus').onclick=()=>{const p=$('plusPanel');if(p)p.classList.toggle('show');};
 $('btnMic').addEventListener('touchstart',e=>{e.preventDefault();startVoice();});
 $('btnMic').addEventListener('touchend',e=>{e.preventDefault();stopVoice();});
-function openPlusPanel(){
-  const items=[
-    {name:'照片',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',fn:()=>{closeSheet();openImgSheet();}},
-    {name:'重新回复',icon:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>',fn:()=>{closeSheet();regenLast();}},
-    {name:'批量发送',icon:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>',fn:()=>{closeSheet();openBatchSheet();}},
-    {name:'钱包',icon:'<svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',fn:()=>{closeSheet();navigate({kind:'sub',id:'sub-wallet'});}},
-    {name:'位置',icon:'<svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',fn:()=>{closeSheet();toast('位置功能待开发');}},
-    {name:'红包',icon:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',fn:()=>{closeSheet();toast('红包功能待开发');}},
-    {name:'转账',icon:'<svg viewBox="0 0 24 24"><path d="M7 10h13l-4-4"/><path d="M17 14H4l4 4"/></svg>',fn:()=>{closeSheet();toast('转账功能待开发');}},
-    {name:'语音输入',icon:'<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>',fn:()=>{closeSheet();startVoice();}}
-  ];
-  let html='<div class="plus-grid">';
-  items.forEach((it,i)=>{html+=`<div class="plus-item" id="pi_${i}"><div class="pi-ico">${it.icon}</div><div class="pi-name">${it.name}</div></div>`;});
-  html+='</div>';
-  openSheet(html);
-  items.forEach((it,i)=>{const el=$('pi_'+i);if(el)el.onclick=it.fn;});
-}
+document.querySelectorAll('.plus-item').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const p=$('plusPanel');if(p)p.classList.remove('show');
+    const a=el.dataset.plus;
+    if(a==='img')openImgSheet();
+    else if(a==='regen')regenLast();
+    else if(a==='wallet')navigate({kind:'sub',id:'sub-wallet'});
+    else if(a==='loc')toast('位置功能待开发');
+    else if(a==='redpkt')toast('红包功能待开发');
+    else if(a==='trans')toast('转账功能待开发');
+    else if(a==='camera')toast('拍摄功能待开发');
+    else if(a==='video')toast('视频通话待开发');
+  });
+});
 function openImgSheet(){openSheet(`<div class="field"><label>表情包图片 URL</label><input id="imgUrl" placeholder="https://.../xxx.png"></div><div style="text-align:center;color:var(--text2);font-size:12px;margin-bottom:10px">填图片直链地址，发送后显示为表情包</div><button class="btn wx" id="imgSend">发送图片</button><button class="btn gray" id="imgCancel">取消</button>`);$('imgSend').onclick=()=>{const u=$('imgUrl').value.trim();if(!u){toast('填个图片URL');return}if(!chats[activeCharId])chats[activeCharId]=[];chats[activeCharId].push({role:'user',type:'image',content:u,time:Date.now()});save(LS.chats,chats);closeSheet();renderChat();};$('imgCancel').onclick=closeSheet;}
 function openBatchSheet(){openSheet(`<div class="field"><label>批量发送（每行一句）</label><textarea id="batchText" style="min-height:120px" placeholder="第一句\n第二句\n第三句"></textarea></div><button class="btn wx" id="batchSend">发送</button><button class="btn gray" id="batchCancel">取消</button>`);$('batchSend').onclick=()=>{const lines=$('batchText').value.split('\n').map(s=>s.trim()).filter(Boolean);if(!lines.length){toast('写点内容');return}closeSheet();lines.forEach(l=>pushUserText(l));};$('batchCancel').onclick=closeSheet;}
 function renderLore(){const box=$('wbList');box.innerHTML='';if(!lore.length){box.innerHTML='<div class="empty">世界书是空的<br>点右下角 + 添加关键词触发的设定</div>';return}lore.forEach((it,i)=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div style="color:var(--yellow);font-size:12px;margin-bottom:6px">关键词 ${esc(it.keys)}</div><div style="color:var(--text2);font-size:13px;line-height:1.5;white-space:pre-wrap">${esc(it.content)}</div>`;const del=document.createElement('button');del.style.cssText='margin-top:10px;background:none;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer';del.textContent='删除';del.onclick=()=>{lore.splice(i,1);save(LS.w,lore);renderLore()};d.appendChild(del);box.appendChild(d);});}
