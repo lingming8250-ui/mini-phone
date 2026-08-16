@@ -14,7 +14,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>小手机</title>
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -131,9 +131,14 @@
 
 <div id="sub-chat" class="sub">
   <div class="navbar"><button class="back" data-hide>‹</button><div class="title" id="chatTitle">聊天</div><button class="nav-btn" id="btnChatMore">···</button></div>
-  <div class="typing-bar" id="typingBar"><span id="typingName">对方</span> 正在输入<span class="dots"></span></div>
   <div class="chat-body" id="chatMsgList"></div>
-  <div class="chat-input"><button class="plus" id="btnPlus">＋</button><textarea id="input" rows="1" placeholder="输入消息…"></textarea><button class="send" id="btnSend">➤</button></div>
+  <div class="chat-input">
+    <button class="ci-btn" id="btnSpeak"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
+    <textarea id="input" rows="1" placeholder="输入消息…" enterkeyhint="send"></textarea>
+    <button class="ci-btn" id="btnMic"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></button>
+    <button class="ci-btn" id="btnEmoji"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+    <button class="ci-btn" id="btnPlus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
 </div>
 
 <div id="sub-chat-info" class="sub">
@@ -328,6 +333,6 @@
 <div class="sheet" id="sheet"><div class="sheet-handle"></div><div id="sheetContent"></div></div>
 <div id="toast"></div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
