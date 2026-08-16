@@ -113,8 +113,8 @@ function renderView(){
     else if(v.id==='sub-wallet')renderWallet();
     else if(v.id==='sub-prota')renderProta();
     else if(v.id==='sub-music')loadMusicList();
-    else if(v.id==='sub-settings')fillSetForm();
-    else if(v.id==='sub-models')loadModels();
+    else if(v.id==='sub-settings')fillSettingsMain();
+    else if(v.id==='sub-api-settings')fillApiSetForm();
     else if(v.id==='sub-wallpaper')renderWallpaper();
     else if(v.id==='sub-lore')renderLore();
     else if(v.id==='sub-memory')renderMem();
@@ -275,7 +275,6 @@ $('btnWalletIn').onclick=walletIn;
 $('btnWalletOut').onclick=walletOut;
 $('miWallet').onclick=()=>navigate({kind:'sub',id:'sub-wallet'});
 $('miProta').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
-$('cellModel').onclick=()=>navigate({kind:'sub',id:'sub-models'});
 $('meProfile').onclick=()=>navigate({kind:'sub',id:'sub-prota'});
 $('cellWallpaper').onclick=()=>navigate({kind:'sub',id:'sub-wallpaper'});
 $('cellAbout').onclick=()=>navigate({kind:'sub',id:'sub-about'});
@@ -283,15 +282,72 @@ function renderProta(){const box=$('protaList');box.innerHTML='';protas.forEach(
 $('btnProtaAdd').onclick=()=>{tmpProtaAvatar='';openSheet(`<div class="field"><label>名字</label><input id="npName" placeholder="这个主角叫什么"></div><div class="field"><label>人设描述</label><textarea id="npDesc" placeholder="性格、身份、背景…"></textarea></div><div class="field"><label>头像（可选）</label><button class="btn gray" id="btnNpAvatar">＋ 选择头像</button></div><button class="btn wx" id="npOk">创建</button><button class="btn gray" id="npCancel">取消</button>`);$('btnNpAvatar').onclick=()=>{avatarTarget='protaNew';$('fileAvatar').click();};$('npOk').onclick=()=>{const n=$('npName').value.trim();if(!n){toast('名字不能为空');return}const p={id:uid(),name:n,desc:$('npDesc').value.trim(),avatar:tmpProtaAvatar};protas.push(p);save(LS.protas,protas);protaId=p.id;save(LS.protaId,protaId);closeSheet();renderProta();renderMe();toast('已创建：'+n);};$('npCancel').onclick=closeSheet;};
 $('btnWechatAdd').onclick=()=>{openSheet(`<div class="menu-item" id="mAddFriend" style="border:none;border-radius:12px;margin-bottom:8px">添加好友</div><div class="menu-item" id="mAddGroup" style="border:none;border-radius:12px">加入群聊</div><button class="btn gray" id="mWAddCancel" style="margin-top:12px">取消</button>`);$('mAddFriend').onclick=()=>{closeSheet();openAddFriendSheet();};$('mAddGroup').onclick=()=>{closeSheet();toast('群聊即将上线');};$('mWAddCancel').onclick=closeSheet;};
 function openAddFriendSheet(){if(!chars.length){toast('先去通讯录创建角色');return;}let html='<div class="group-title">选择主角人设</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px">';protas.forEach(p=>{const on=p.id===protaId;html+=`<div class="prota-chip" id="chip_${p.id}" style="padding:8px 14px;border-radius:20px;background:${on?'rgba(10,132,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'var(--blue)':'var(--border)'};cursor:pointer;font-size:13px">${esc(p.name)}</div>`;});html+='</div><div class="group-title">选择好友</div>';chars.forEach(c=>{html+=`<div class="menu-item" id="friend_${c.id}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-ico" style="background:linear-gradient(135deg,rgba(94,92,230,.6),rgba(191,90,242,.5))">${c.avatar?`<img src="${c.avatar}">`:esc(c.name[0]||'?')}</span><span class="mi-name">${esc(c.name)}</span><span class="mi-chev">›</span></div>`;});html+='<button class="btn gray" id="afCancel" style="margin-top:10px">取消</button>';openSheet(html);protas.forEach(p=>{const chip=$('chip_'+p.id);if(chip)chip.onclick=()=>{protaId=p.id;save(LS.protaId,protaId);openAddFriendSheet();};});chars.forEach(c=>{const item=$('friend_'+c.id);if(item)item.onclick=()=>{closeSheet();activeCharId=c.id;navigate({kind:'sub',id:'sub-chat'});};});$('afCancel').onclick=closeSheet;}
-function fillSetForm(){$('setBaseurl').value=st.baseurl;$('setKey').value=st.apiKey;$('setGenBaseurl').value=st.genBaseurl||'';$('setGenKey').value=st.genKey||'';$('setGenModel').value=st.genModel||'';$('setModel').textContent=st.model||'未选择';$('setTemp').value=st.temperature;$('tempVal').textContent=st.temperature;$('setTopP').value=st.topP;$('topPVal').textContent=st.topP;$('setMaxTokens').value=st.maxTokens;$('setStream').classList.toggle('on',st.stream);$('setSysPrompt').value=st.sys;$('wallpaperName').textContent=wallpaper==='custom'?'自定义':(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;$('setActive').classList.toggle('on',activeMsg.enabled);$('setActiveInterval').value=activeMsg.interval;}
-function saveSet(){st.baseurl=$('setBaseurl').value.trim();st.apiKey=$('setKey').value.trim();st.genBaseurl=$('setGenBaseurl').value.trim();st.genKey=$('setGenKey').value.trim();st.genModel=$('setGenModel').value.trim();st.temperature=parseFloat($('setTemp').value);st.topP=parseFloat($('setTopP').value);st.maxTokens=parseInt($('setMaxTokens').value)||1024;st.stream=$('setStream').classList.contains('on');st.sys=$('setSysPrompt').value;activeMsg.enabled=$('setActive').classList.contains('on');activeMsg.interval=parseInt($('setActiveInterval').value)||30;save(LS.s,st);save(LS.activeMsg,activeMsg);startActiveTimer();toast('设置已保存');}
-$('setStream').onclick=function(){this.classList.toggle('on')};
-$('setActive').onclick=function(){this.classList.toggle('on')};
+function fillSettingsMain(){
+  $('settingsModelPreview').textContent=st.model||'未设置';
+  $('wallpaperName').textContent=wallpaper==='custom'?'自定义':(WALLPAPERS.find(w=>w.id===wallpaper)||WALLPAPERS[0]).name;
+  $('setActive').classList.toggle('on',activeMsg.enabled);
+  $('setActiveInterval').value=activeMsg.interval;
+}
+function fillApiSetForm(){
+  $('setBaseurl').value=st.baseurl;
+  $('setKey').value=st.apiKey;
+  $('setModel').textContent=st.model||'未选择';
+  $('setGenBaseurl').value=st.genBaseurl||'';
+  $('setGenKey').value=st.genKey||'';
+  $('setGenModel').textContent=st.genModel||'未选择';
+  $('setTemp').value=st.temperature;
+  $('tempVal').textContent=st.temperature;
+}
+function saveApiSet(){
+  st.baseurl=$('setBaseurl').value.trim();
+  st.apiKey=$('setKey').value.trim();
+  st.genBaseurl=$('setGenBaseurl').value.trim();
+  st.genKey=$('setGenKey').value.trim();
+  st.temperature=parseFloat($('setTemp').value);
+  save(LS.s,st);
+  toast('设置已保存');
+}
+function pickChatModel(){
+  if(!st.baseurl||!st.apiKey){toast('先填 API 地址和 Key');return;}
+  toast('正在拉取模型列表…');
+  fetch(st.baseurl.replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+st.apiKey}})
+    .then(res=>{if(!res.ok)throw new Error('HTTP '+res.status);return res.json()})
+    .then(j=>{
+      const arr=j.data||j.models||[];
+      if(!arr.length){toast('接口返回空列表');return;}
+      let html='<div class="group-title">选择模型</div>';
+      arr.forEach((m,i)=>{const id=m.id||m;html+=`<div class="menu-item" id="cm_${i}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-name">${esc(id)}</span>${id===st.model?'<span class="mi-chev">✓</span>':''}</div>`;});
+      html+='<button class="btn gray" id="cmCancel" style="margin-top:10px">取消</button>';
+      openSheet(html);
+      arr.forEach((m,i)=>{const id=m.id||m;const it=$('cm_'+i);if(it)it.onclick=()=>{st.model=id;save(LS.s,st);$('setModel').textContent=id;closeSheet();toast('已选 '+id);};});
+      $('cmCancel').onclick=closeSheet;
+    })
+    .catch(e=>toast('拉取失败：'+e.message));
+}
+function pickGenModel(){
+  if(!st.genBaseurl||!st.genKey){toast('先填生图地址和 Key');return;}
+  toast('正在拉取生图模型…');
+  fetch(st.genBaseurl.replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+st.genKey}})
+    .then(res=>{if(!res.ok)throw new Error('HTTP '+res.status);return res.json()})
+    .then(j=>{
+      const arr=j.data||j.models||[];
+      if(!arr.length){toast('接口返回空列表');return;}
+      let html='<div class="group-title">选择生图模型</div>';
+      arr.forEach((m,i)=>{const id=m.id||m;html+=`<div class="menu-item" id="gm_${i}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-name">${esc(id)}</span>${id===st.genModel?'<span class="mi-chev">✓</span>':''}</div>`;});
+      html+='<button class="btn gray" id="gmCancel" style="margin-top:10px">取消</button>';
+      openSheet(html);
+      arr.forEach((m,i)=>{const id=m.id||m;const it=$('gm_'+i);if(it)it.onclick=()=>{st.genModel=id;save(LS.s,st);$('setGenModel').textContent=id;closeSheet();toast('已选 '+id);};});
+      $('gmCancel').onclick=closeSheet;
+    })
+    .catch(e=>toast('拉取失败：'+e.message));
+}
+$('cellApiSettings').onclick=()=>navigate({kind:'sub',id:'sub-api-settings'});
+$('cellChatModel').onclick=pickChatModel;
+$('cellGenModel').onclick=pickGenModel;
+$('btnSaveApi').onclick=saveApiSet;
+$('setActive').onclick=function(){this.classList.toggle('on');activeMsg.enabled=this.classList.contains('on');save(LS.activeMsg,activeMsg);startActiveTimer();};
+$('setActiveInterval').addEventListener('change',function(){activeMsg.interval=parseInt(this.value)||30;save(LS.activeMsg,activeMsg);startActiveTimer();});
 $('setTemp').oninput=e=>$('tempVal').textContent=e.target.value;
-$('setTopP').oninput=e=>$('topPVal').textContent=e.target.value;
-function loadModels(){const box=$('modelList');if(!st.baseurl||!st.apiKey){box.innerHTML='<div class="empty">先到设置页填 Base URL 和 API Key</div>';return}box.innerHTML='<div class="empty">正在拉取模型列表…</div>';fetch(st.baseurl.replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+st.apiKey}}).then(res=>{if(!res.ok)throw new Error('HTTP '+res.status);return res.json()}).then(j=>{const arr=j.data||j.models||[];if(!arr.length){box.innerHTML='<div class="empty">接口返回空列表</div>';return}box.innerHTML='';arr.forEach(m=>{const id=m.id||m;const d=document.createElement('div');d.className='model-item'+(id===st.model?' sel':'');d.innerHTML=`<span class="mid">${esc(id)}</span><span class="check">✓</span>`;d.onclick=()=>{st.model=id;save(LS.s,st);$('setModel').textContent=id;toast('已选择 '+id);loadModels()};box.appendChild(d);});}).catch(e=>{box.innerHTML=`<div class="empty">拉取失败：${esc(e.message)}<br><br>部分服务商不支持 /models 接口</div>`});}
-function loadGenModels(){if(!st.genBaseurl||!st.genKey){toast('先填生图 Base URL 和 Key');return;}toast('正在拉取生图模型…');fetch(st.genBaseurl.replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+st.genKey}}).then(res=>{if(!res.ok)throw new Error('HTTP '+res.status);return res.json()}).then(j=>{const arr=j.data||j.models||[];if(!arr.length){toast('接口返回空列表');return;}let html='<div class="group-title">选择生图模型</div>';arr.forEach((m,i)=>{const id=m.id||m;html+=`<div class="menu-item" id="gmi_${i}" style="border:none;border-radius:12px;margin-bottom:6px"><span class="mi-name">${esc(id)}</span>${id===st.genModel?'<span class="mi-chev">✓</span>':''}</div>`;});html+='<button class="btn gray" id="gmCancel" style="margin-top:10px">取消</button>';openSheet(html);arr.forEach((m,i)=>{const id=m.id||m;const it=$('gmi_'+i);if(it)it.onclick=()=>{st.genModel=id;save(LS.s,st);$('setGenModel').value=id;closeSheet();toast('已选 '+id);};});$('gmCancel').onclick=closeSheet;}).catch(e=>toast('拉取失败：'+e.message));}
-$('cellLoadGen').onclick=loadGenModels;
 async function doSum(){const c=getChar(activeCharId);if(!c){toast('先进入一个角色的聊天');return}const r=(chats[activeCharId]||[]).slice(-20);if(r.length<4){toast('对话太短，没啥好总结的');return}toast('正在总结记忆…');try{const url=st.baseurl.replace(/\/+$/,'')+'/chat/completions';const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+st.apiKey},body:JSON.stringify({model:st.model,stream:false,messages:[{role:'system',content:'你是记忆整理助手。用简体中文3-5句话概括以下对话中值得记住的信息，只输出概括。'},{role:'user',content:r.map(m=>m.role+': '+(m.type==='image'?'[图片]':m.content)).join('\n')}]})});if(!res.ok)throw new Error('HTTP '+res.status);const j=await res.json();const s=stripThink(extractContent(j)).trim();if(s){mem[activeCharId]={summary:s,lastCount:(chats[activeCharId]||[]).length};save(LS.mem,mem);renderMem();toast('记忆已更新')}}catch(e){toast('总结失败：'+e.message)}}
 function maybeSum(c){const msgs=chats[c.id]||[];const info=mem[c.id]||{summary:'',lastCount:0};if(msgs.length>=20&&msgs.length-info.lastCount>=10){activeCharId=c.id;doSum()}}
 function renderMem(){const info=mem[activeCharId];if(!activeCharId){$('memText').textContent='请先从微信进入一个角色的聊天，才能查看记忆';return}$('memText').textContent=(info&&info.summary)||'（暂无记忆。对话超过 20 条后可自动总结。）';}
@@ -313,8 +369,6 @@ $('fileImport').addEventListener('change',function(){const f=this.files[0];if(!f
 $('btnWipeAll').onclick=()=>{if(!confirm('恢复出厂设置？所有数据将被清除！'))return;localStorage.clear();location.reload();};
 $('btnSummarize').onclick=doSum;
 $('btnClearMemory').onclick=()=>{mem={};save(LS.mem,mem);renderMem();toast('记忆已清空')};
-$('btnRefreshModels').onclick=loadModels;
-$('btnSaveSet').onclick=saveSet;
 $('btnSend').onclick=send;
 $('input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'});
 $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){e.preventDefault();send()}});
