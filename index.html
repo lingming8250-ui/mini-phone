@@ -14,7 +14,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>小手机</title>
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
 
@@ -132,26 +132,26 @@
 <div id="sub-chat" class="sub">
   <div class="navbar"><button class="back" data-hide>‹</button><div class="title" id="chatTitle">聊天</div><button class="nav-btn" id="btnChatMore">···</button></div>
   <div class="chat-body" id="chatMsgList"></div>
-  <div class="plus-panel" id="plusPanel">
-    <div class="plus-grid">
-      <div class="plus-item" data-plus="img"><div class="pi-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="pi-name">照片</div></div>
-      <div class="plus-item" data-plus="regen"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></div><div class="pi-name">重新回复</div></div>
-      <div class="plus-item" data-plus="wallet"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div><div class="pi-name">钱包</div></div>
-      <div class="plus-item" data-plus="loc"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="pi-name">位置</div></div>
-      <div class="plus-item" data-plus="redpkt"><div class="pi-ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></div><div class="pi-name">红包</div></div>
-      <div class="plus-item" data-plus="trans"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M7 10h13l-4-4"/><path d="M17 14H4l4 4"/></svg></div><div class="pi-name">转账</div></div>
-      <div class="plus-item" data-plus="camera"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div><div class="pi-name">拍摄</div></div>
-      <div class="plus-item" data-plus="video"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg></div><div class="pi-name">视频通话</div></div>
-    </div>
-  </div>
   <div class="chat-input">
-    <button class="ci-btn" id="btnSpeak"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
+    <div class="plus-panel" id="plusPanel">
+      <div class="plus-grid">
+        <div class="plus-item" data-plus="img"><div class="pi-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="pi-name">照片</div></div>
+        <div class="plus-item" data-plus="camera"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div><div class="pi-name">拍摄</div></div>
+        <div class="plus-item" data-plus="regen"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></div><div class="pi-name">重新回复</div></div>
+        <div class="plus-item" data-plus="loc"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="pi-name">位置</div></div>
+        <div class="plus-item" data-plus="redpkt"><div class="pi-ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></div><div class="pi-name">红包</div></div>
+        <div class="plus-item" data-plus="gift"><div class="pi-ico"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></div><div class="pi-name">礼物</div></div>
+        <div class="plus-item" data-plus="trans"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M7 10h13l-4-4"/><path d="M17 14H4l4 4"/></svg></div><div class="pi-name">转账</div></div>
+        <div class="plus-item" data-plus="wallet"><div class="pi-ico"><svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div><div class="pi-name">钱包</div></div>
+      </div>
+    </div>
+    <button class="ci-btn" id="btnSpeak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 8v8"/><path d="M12 4v16"/><path d="M16 8v8"/></svg></button>
     <div class="input-wrap">
       <textarea id="input" rows="1" placeholder="输入消息…" enterkeyhint="send"></textarea>
-      <button class="mic-in" id="btnMic"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 18v4"/></svg></button>
+      <button class="mic-in" id="btnMic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 18v4"/></svg></button>
     </div>
-    <button class="ci-btn" id="btnEmoji"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f6c344"/><circle cx="8.7" cy="9.7" r="1.3" fill="#5b3d00"/><circle cx="15.3" cy="9.7" r="1.3" fill="#5b3d00"/><path d="M8.2 14.2c1 1.4 2.3 2.1 3.8 2.1s2.8-.7 3.8-2.1" fill="none" stroke="#5b3d00" stroke-width="1.6" stroke-linecap="round"/></svg></button>
-    <button class="ci-btn" id="btnPlus"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button>
+    <button class="ci-btn" id="btnEmoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.5 2 3.5 2 3.5-2 3.5-2"/><path d="M9 9.5h.01"/><path d="M15 9.5h.01"/></svg></button>
+    <button class="ci-btn" id="btnPlus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button>
   </div>
 </div>
 
@@ -350,6 +350,6 @@
 <div class="sheet" id="sheet"><div class="sheet-handle"></div><div id="sheetContent"></div></div>
 <div id="toast"></div>
 
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
