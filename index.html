@@ -14,7 +14,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>小手机</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
@@ -217,53 +217,43 @@
 </div>
 
 <div id="sub-settings" class="sub">
-  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">设置</div><button class="nav-btn" id="btnSaveSet">保存</button></div>
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">设置</div></div>
   <div class="sub-body">
-    <div class="group-title">API 配置</div>
     <div class="group">
-      <div class="cell"><span class="label">Base URL</span><input class="cell-edit" id="setBaseurl" placeholder="https://api.openai.com/v1" style="text-align:right"></div>
-      <div class="cell"><span class="label">API Key</span><input class="cell-edit" id="setKey" type="password" placeholder="sk-..." style="text-align:right"></div>
+      <div class="cell" id="cellApiSettings"><span class="label">API 设置</span><span class="value" id="settingsModelPreview">未设置</span><span class="chev">›</span></div>
     </div>
-    <div class="group-title">生图 API 配置</div>
-    <div class="group">
-      <div class="cell"><span class="label">生图 Base URL</span><input class="cell-edit" id="setGenBaseurl" placeholder="https://..." style="text-align:right"></div>
-      <div class="cell"><span class="label">生图 Key</span><input class="cell-edit" id="setGenKey" type="password" placeholder="sk-..." style="text-align:right"></div>
-      <div class="cell"><span class="label">生图模型</span><input class="cell-edit" id="setGenModel" placeholder="如 flux / dall-e-3" style="text-align:right"></div>
-      <div class="cell" id="cellLoadGen"><span class="label">拉取生图模型</span><span class="value">从生图地址拉列表</span><span class="chev">›</span></div>
-    </div>
-    <div class="group-title">模型</div>
-    <div class="group">
-      <div class="cell" id="cellModel"><span class="label">模型（点此拉取）</span><span class="value" id="setModel">未选择</span><span class="chev">›</span></div>
-    </div>
-    <div class="group-title">生成参数</div>
-    <div class="group">
-      <div class="cell"><span class="label">温度</span><div class="slider-row"><input type="range" id="setTemp" min="0" max="2" step="0.1" value="0.9"><span class="sval" id="tempVal">0.9</span></div></div>
-      <div class="cell"><span class="label">Top P</span><div class="slider-row"><input type="range" id="setTopP" min="0" max="1" step="0.05" value="1"><span class="sval" id="topPVal">1.0</span></div></div>
-      <div class="cell"><span class="label">Max Tokens</span><input class="cell-edit" id="setMaxTokens" type="number" value="1024" style="width:80px;text-align:right"></div>
-    </div>
-    <div class="group-title">对话</div>
-    <div class="group"><div class="cell"><span class="label">流式输出</span><div class="switch on" id="setStream"></div></div></div>
     <div class="group-title">主动消息</div>
     <div class="group">
       <div class="cell"><span class="label">开启主动消息</span><div class="switch" id="setActive"></div></div>
       <div class="cell"><span class="label">间隔（分钟）</span><input class="cell-edit" id="setActiveInterval" type="number" value="30" style="width:80px;text-align:right"></div>
     </div>
-    <div class="group-title">系统提示词模板（{name}替换角色名）</div>
-    <div class="group"><div class="cell" style="flex-direction:column;align-items:stretch"><textarea class="cell-edit" id="setSysPrompt" style="min-height:90px"></textarea></div></div>
-    <div class="group-title">个性化</div>
     <div class="group">
       <div class="cell" id="cellWallpaper"><span class="label">壁纸</span><span class="value" id="wallpaperName">极光</span><span class="chev">›</span></div>
-    </div>
-    <div class="group-title">关于</div>
-    <div class="group">
       <div class="cell" id="cellAbout"><span class="label">关于本机</span><span class="value">LingOS 1.0</span><span class="chev">›</span></div>
     </div>
   </div>
 </div>
 
-<div id="sub-models" class="sub">
-  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">选择模型</div><button class="nav-btn" id="btnRefreshModels">刷新</button></div>
-  <div class="sub-body" id="modelList"></div>
+<div id="sub-api-settings" class="sub">
+  <div class="navbar"><button class="back" data-hide>‹</button><div class="title">API 设置</div><button class="nav-btn" id="btnSaveApi">保存</button></div>
+  <div class="sub-body">
+    <div class="group-title">连接配置（聊天）</div>
+    <div class="group">
+      <div class="cell"><span class="label">API 地址</span><input class="cell-edit" id="setBaseurl" placeholder="https://..." style="text-align:right"></div>
+      <div class="cell"><span class="label">API Key</span><input class="cell-edit" id="setKey" type="password" placeholder="sk-..." style="text-align:right"></div>
+      <div class="cell" id="cellChatModel"><span class="label">模型名称</span><span class="value" id="setModel">未选择</span><span class="chev">›</span></div>
+    </div>
+    <div class="group-title">连接配置（生图）</div>
+    <div class="group">
+      <div class="cell"><span class="label">生图地址</span><input class="cell-edit" id="setGenBaseurl" placeholder="https://..." style="text-align:right"></div>
+      <div class="cell"><span class="label">生图 Key</span><input class="cell-edit" id="setGenKey" type="password" placeholder="sk-..." style="text-align:right"></div>
+      <div class="cell" id="cellGenModel"><span class="label">生图模型</span><span class="value" id="setGenModel">未选择</span><span class="chev">›</span></div>
+    </div>
+    <div class="group-title">参数</div>
+    <div class="group">
+      <div class="cell"><span class="label">温度</span><div class="slider-row"><input type="range" id="setTemp" min="0" max="2" step="0.1" value="0.9"><span class="sval" id="tempVal">0.9</span></div></div>
+    </div>
+  </div>
 </div>
 
 <div id="sub-wallpaper" class="sub">
@@ -338,6 +328,6 @@
 <div class="sheet" id="sheet"><div class="sheet-handle"></div><div id="sheetContent"></div></div>
 <div id="toast"></div>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
